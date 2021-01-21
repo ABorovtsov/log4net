@@ -1,2 +1,6 @@
 *.suo
-/log4net.tools/obj
+*/obj/
+*/bin/
+*/.vs/
+*.dll
+*/*.user
