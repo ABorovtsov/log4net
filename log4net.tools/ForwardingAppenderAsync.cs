@@ -6,15 +6,15 @@ using log4net.Util;
 
 namespace log4net.tools
 {
-	/// <summary>
-	/// Appender forwards LoggingEvents to a list of attached appenders asynchronously
-	/// </summary>
-	public class ForwardingAppenderAsync : IAppender, IAppenderAttachable
-	{
-		public string Name { get; set; }
+    /// <summary>
+    /// Appender forwards LoggingEvents to a list of attached appenders asynchronously
+    /// </summary>
+    public class ForwardingAppenderAsync : IAppender, IAppenderAttachable
+    {
+        public string Name { get; set; }
         public FixFlags Fix { get; set; } = FixFlags.All;
 
-		private AppenderAttachedImpl _appenderAttached;
+        private AppenderAttachedImpl _appenderAttached;
 
         public void DoAppend(LoggingEvent loggingEvent)
         {
@@ -27,92 +27,92 @@ namespace log4net.tools
             ThreadPool.QueueUserWorkItem(AsyncAppend, loggingEvent);
         }
 
-		public void Close()
-		{
-			lock (this)
+        public void Close()
+        {
+            lock (this)
             {
                 _appenderAttached?.RemoveAllAppenders();
             }
-		}
+        }
 
-		public void AddAppender(IAppender newAppender)
-		{
-			if (newAppender == null)
-			{
-				throw new ArgumentNullException(nameof(newAppender));
-			}
+        public void AddAppender(IAppender newAppender)
+        {
+            if (newAppender == null)
+            {
+                throw new ArgumentNullException(nameof(newAppender));
+            }
 
-			lock (this)
-			{
-				if (_appenderAttached == null)
-				{
-					_appenderAttached = new AppenderAttachedImpl();
-				}
+            lock (this)
+            {
+                if (_appenderAttached == null)
+                {
+                    _appenderAttached = new AppenderAttachedImpl();
+                }
 
-				_appenderAttached.AddAppender(newAppender);
-			}
-		}
+                _appenderAttached.AddAppender(newAppender);
+            }
+        }
 
-		public AppenderCollection Appenders
-		{
-			get
-			{
-				lock (this)
+        public AppenderCollection Appenders
+        {
+            get
+            {
+                lock (this)
                 {
                     return _appenderAttached == null 
                         ? AppenderCollection.EmptyCollection 
                         : _appenderAttached.Appenders;
                 }
-			}
-		}
-
-		public IAppender GetAppender(string name)
-		{
-            if (string.IsNullOrWhiteSpace(name))
-            {
-                return null;
             }
+        }
 
-			lock (this)
-			{
-                return _appenderAttached?.GetAppender(name);
-			}
-		}
-
-		public void RemoveAllAppenders()
-		{
-			lock (this)
-			{
-				_appenderAttached?.RemoveAllAppenders();
-				_appenderAttached = null;
-			}
-		}
-
-		public IAppender RemoveAppender(IAppender appender)
-		{
-            if (appender == null)
-            {
-                return null;
-            }
-
-			lock (this)
-			{
-                return _appenderAttached?.RemoveAppender(appender);
-			}
-		}
-
-		public IAppender RemoveAppender(string name)
+        public IAppender GetAppender(string name)
         {
             if (string.IsNullOrWhiteSpace(name))
             {
                 return null;
             }
 
-			lock (this)
-			{
+            lock (this)
+            {
+                return _appenderAttached?.GetAppender(name);
+            }
+        }
+
+        public void RemoveAllAppenders()
+        {
+            lock (this)
+            {
+                _appenderAttached?.RemoveAllAppenders();
+                _appenderAttached = null;
+            }
+        }
+
+        public IAppender RemoveAppender(IAppender appender)
+        {
+            if (appender == null)
+            {
+                return null;
+            }
+
+            lock (this)
+            {
+                return _appenderAttached?.RemoveAppender(appender);
+            }
+        }
+
+        public IAppender RemoveAppender(string name)
+        {
+            if (string.IsNullOrWhiteSpace(name))
+            {
+                return null;
+            }
+
+            lock (this)
+            {
                 return _appenderAttached?.RemoveAppender(name);
-			}
-		}
+            }
+        }
 
         private void AsyncAppend(object state)
         {
@@ -129,5 +129,5 @@ namespace log4net.tools
                 }
             }
         }
-	}
+    }
 }
