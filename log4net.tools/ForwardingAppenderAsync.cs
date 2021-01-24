@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Threading;
+using System.Threading.Tasks;
 using log4net.Appender;
 using log4net.Core;
 using log4net.Util;
+using Phreesia.Common.Web.Redis;
 
 namespace log4net.tools
 {
@@ -14,6 +16,8 @@ namespace log4net.tools
         public string Name { get; set; }
         public FixFlags Fix { get; set; } = FixFlags.All;
 
+        private const int TakeLockTimeoutMs = 100;
+        private static readonly ReaderWriterLockSlim Lock = new ReaderWriterLockSlim(LockRecursionPolicy.SupportsRecursion);
         private AppenderAttachedImpl _appenderAttached;
 
         public void DoAppend(LoggingEvent loggingEvent)
@@ -24,15 +28,7 @@ namespace log4net.tools
             }
 
             loggingEvent.Fix = Fix;
-            ThreadPool.QueueUserWorkItem(AsyncAppend, loggingEvent);
-        }
-
-        public void Close()
-        {
-            lock (this)
-            {
-                _appenderAttached?.RemoveAllAppenders();
-            }
+            Task.Factory.StartNew(() => AsyncAppend(loggingEvent)); // todo: use a dedicated worker thread instead
         }
 
         public void AddAppender(IAppender newAppender)
@@ -42,7 +38,7 @@ namespace log4net.tools
                 throw new ArgumentNullException(nameof(newAppender));
             }
 
-            lock (this)
+            using (new AppenderLocker(Lock, TakeLockTimeoutMs, exclusive: true))
             {
                 if (_appenderAttached == null)
                 {
@@ -53,11 +49,16 @@ namespace log4net.tools
             }
         }
 
+        public void Close()
+        {
+            RemoveAllAppenders();
+        }
+
         public AppenderCollection Appenders
         {
             get
             {
-                lock (this)
+                using (new AppenderLocker(Lock, TakeLockTimeoutMs))
                 {
                     return _appenderAttached == null 
                         ? AppenderCollection.EmptyCollection 
@@ -73,7 +74,7 @@ namespace log4net.tools
                 return null;
             }
 
-            lock (this)
+            using (new AppenderLocker(Lock, TakeLockTimeoutMs))
             {
                 return _appenderAttached?.GetAppender(name);
             }
@@ -81,7 +82,7 @@ namespace log4net.tools
 
         public void RemoveAllAppenders()
         {
-            lock (this)
+            using (new AppenderLocker(Lock, TakeLockTimeoutMs, exclusive: true))
             {
                 _appenderAttached?.RemoveAllAppenders();
                 _appenderAttached = null;
@@ -95,7 +96,7 @@ namespace log4net.tools
                 return null;
             }
 
-            lock (this)
+            using (new AppenderLocker(Lock, TakeLockTimeoutMs, exclusive: true))
             {
                 return _appenderAttached?.RemoveAppender(appender);
             }
@@ -108,7 +109,7 @@ namespace log4net.tools
                 return null;
             }
 
-            lock (this)
+            using (new AppenderLocker(Lock, TakeLockTimeoutMs, exclusive: true))
             {
                 return _appenderAttached?.RemoveAppender(name);
             }
@@ -123,7 +124,7 @@ namespace log4net.tools
 
             if (state is LoggingEvent loggingEvent)
             {
-                lock (this)
+                using (new AppenderLocker(Lock, TakeLockTimeoutMs))
                 {
                     _appenderAttached?.AppendLoopOnAppenders(loggingEvent);
                 }
