@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Threading;
-using System.Threading.Tasks;
 using log4net.Appender;
 using log4net.Core;
 using log4net.Util;
@@ -15,10 +14,16 @@ namespace log4net.tools
     {
         public string Name { get; set; }
         public FixFlags Fix { get; set; } = FixFlags.All;
+        public IQueue EventQueue { get; set; }
 
         private const int TakeLockTimeoutMs = 100;
         private static readonly ReaderWriterLockSlim Lock = new ReaderWriterLockSlim(LockRecursionPolicy.SupportsRecursion);
         private AppenderAttachedImpl _appenderAttached;
+
+        public ForwardingAppenderAsync()
+        {
+            EventQueue = new LoggingEventQueue(Append);
+        }
 
         public void DoAppend(LoggingEvent loggingEvent)
         {
@@ -28,7 +33,7 @@ namespace log4net.tools
             }
 
             loggingEvent.Fix = Fix;
-            Task.Factory.StartNew(() => AsyncAppend(loggingEvent)); // todo: use a dedicated worker thread instead
+            EventQueue.Enqueue(loggingEvent);
         }
 
         public void AddAppender(IAppender newAppender)
@@ -115,19 +120,16 @@ namespace log4net.tools
             }
         }
 
-        private void AsyncAppend(object state)
+        private void Append(LoggingEvent loggingEvent)
         {
-            if (state == null)
+            if (loggingEvent == null)
             {
                 return;
             }
 
-            if (state is LoggingEvent loggingEvent)
+            using (new AppenderLocker(Lock, TakeLockTimeoutMs))
             {
-                using (new AppenderLocker(Lock, TakeLockTimeoutMs))
-                {
-                    _appenderAttached?.AppendLoopOnAppenders(loggingEvent);
-                }
+                _appenderAttached?.AppendLoopOnAppenders(loggingEvent);
             }
         }
     }
