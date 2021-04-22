@@ -2,7 +2,7 @@
 using System.Diagnostics;
 using System.Threading;
 
-namespace Phreesia.Common.Web.Redis
+namespace log4net.tools
 {
     public struct AppenderLocker: IDisposable
     {

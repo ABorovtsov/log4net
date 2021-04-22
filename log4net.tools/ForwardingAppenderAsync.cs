@@ -1,9 +1,12 @@
 ﻿using System;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
+using System.Diagnostics;
 using System.Threading;
+using System.Threading.Tasks;
 using log4net.Appender;
 using log4net.Core;
 using log4net.Util;
-using Phreesia.Common.Web.Redis;
 
 namespace log4net.tools
 {
@@ -14,15 +17,20 @@ namespace log4net.tools
     {
         public string Name { get; set; }
         public FixFlags Fix { get; set; } = FixFlags.All;
-        public IQueue EventQueue { get; set; }
+        public int BufferSize { get; set; }
 
         private const int TakeLockTimeoutMs = 100;
         private static readonly ReaderWriterLockSlim Lock = new ReaderWriterLockSlim(LockRecursionPolicy.SupportsRecursion);
+        private readonly BlockingCollection<LoggingEvent> _queue;
+        private readonly Task _worker;
         private AppenderAttachedImpl _appenderAttached;
 
         public ForwardingAppenderAsync()
         {
-            EventQueue = new LoggingEventQueue(Append);
+            _queue = BufferSize > 0
+                ? new BlockingCollection<LoggingEvent>(BufferSize) // call to Add may block until space is available to store the provided item (https://docs.microsoft.com/en-us/dotnet/api/system.collections.concurrent.blockingcollection-1.add?view=net-5.0#System_Collections_Concurrent_BlockingCollection_1_Add__0_)
+                : new BlockingCollection<LoggingEvent>();
+            _worker = Task.Factory.StartNew(() => Append(_queue.GetConsumingEnumerable()), TaskCreationOptions.LongRunning);
         }
 
         public void DoAppend(LoggingEvent loggingEvent)
@@ -33,7 +41,10 @@ namespace log4net.tools
             }
 
             loggingEvent.Fix = Fix;
-            EventQueue.Enqueue(loggingEvent);
+            if (!_queue.TryAdd(loggingEvent))
+            {
+                Trace.TraceError("Cannot add the loggingEvent in to the queue");
+            }
         }
 
         public void AddAppender(IAppender newAppender)
@@ -120,16 +131,14 @@ namespace log4net.tools
             }
         }
 
-        private void Append(LoggingEvent loggingEvent)
+        private void Append(IEnumerable<LoggingEvent> loggingEvents)
         {
-            if (loggingEvent == null)
+            foreach (LoggingEvent loggingEvent in loggingEvents)
             {
-                return;
-            }
-
-            using (new AppenderLocker(Lock, TakeLockTimeoutMs))
-            {
-                _appenderAttached?.AppendLoopOnAppenders(loggingEvent);
+                using (new AppenderLocker(Lock, TakeLockTimeoutMs))
+                {
+                    _appenderAttached?.AppendLoopOnAppenders(loggingEvent);
+                }
             }
         }
     }
