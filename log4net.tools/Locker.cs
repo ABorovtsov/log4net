@@ -4,12 +4,12 @@ using System.Threading;
 
 namespace log4net.tools
 {
-    public struct AppenderLocker: IDisposable
+    public readonly struct Locker: IDisposable
     {
         private readonly ReaderWriterLockSlim _lock;
         private readonly bool _exclusive;
 
-        public AppenderLocker(ReaderWriterLockSlim @lock, bool exclusive = false)
+        public Locker(ReaderWriterLockSlim @lock, bool exclusive = false)
         {
             _lock = @lock;
             _exclusive = exclusive;
@@ -23,7 +23,7 @@ namespace log4net.tools
             _lock.EnterReadLock();
         }
 
-        public AppenderLocker(ReaderWriterLockSlim @lock, int timeoutMs, bool exclusive = false)
+        public Locker(ReaderWriterLockSlim @lock, int timeoutMs, bool exclusive = false)
         {
             _lock = @lock;
             _exclusive = exclusive;

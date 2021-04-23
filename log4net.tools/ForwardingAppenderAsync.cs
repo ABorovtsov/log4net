@@ -24,13 +24,20 @@ namespace log4net.tools
         private readonly BlockingCollection<LoggingEvent> _queue;
         private readonly Task _worker;
         private AppenderAttachedImpl _appenderAttached;
+        private readonly CancellationTokenSource _cancellation = new CancellationTokenSource();
 
         public ForwardingAppenderAsync()
         {
             _queue = BufferSize > 0
                 ? new BlockingCollection<LoggingEvent>(BufferSize) // call to Add may block until space is available to store the provided item (https://docs.microsoft.com/en-us/dotnet/api/system.collections.concurrent.blockingcollection-1.add?view=net-5.0#System_Collections_Concurrent_BlockingCollection_1_Add__0_)
                 : new BlockingCollection<LoggingEvent>();
-            _worker = Task.Factory.StartNew(() => Append(_queue.GetConsumingEnumerable()), TaskCreationOptions.LongRunning);
+
+            var cancellationToken = _cancellation.Token;
+            _worker = Task.Factory
+                .StartNew(() => Append(_queue.GetConsumingEnumerable(cancellationToken), cancellationToken), 
+                    cancellationToken, 
+                    TaskCreationOptions.LongRunning, 
+                    TaskScheduler.Default);
         }
 
         public void DoAppend(LoggingEvent loggingEvent)
@@ -54,7 +61,7 @@ namespace log4net.tools
                 throw new ArgumentNullException(nameof(newAppender));
             }
 
-            using (new AppenderLocker(Lock, TakeLockTimeoutMs, exclusive: true))
+            using (new Locker(Lock, TakeLockTimeoutMs, exclusive: true))
             {
                 if (_appenderAttached == null)
                 {
@@ -67,14 +74,19 @@ namespace log4net.tools
 
         public void Close()
         {
-            RemoveAllAppenders();
+            _cancellation?.Cancel();
+
+            _worker?.Dispose();
+            _queue?.Dispose();
+            Lock?.Dispose();
+            _cancellation?.Dispose();
         }
 
         public AppenderCollection Appenders
         {
             get
             {
-                using (new AppenderLocker(Lock, TakeLockTimeoutMs))
+                using (new Locker(Lock, TakeLockTimeoutMs))
                 {
                     return _appenderAttached == null 
                         ? AppenderCollection.EmptyCollection 
@@ -90,7 +102,7 @@ namespace log4net.tools
                 return null;
             }
 
-            using (new AppenderLocker(Lock, TakeLockTimeoutMs))
+            using (new Locker(Lock, TakeLockTimeoutMs))
             {
                 return _appenderAttached?.GetAppender(name);
             }
@@ -98,7 +110,7 @@ namespace log4net.tools
 
         public void RemoveAllAppenders()
         {
-            using (new AppenderLocker(Lock, TakeLockTimeoutMs, exclusive: true))
+            using (new Locker(Lock, TakeLockTimeoutMs, exclusive: true))
             {
                 _appenderAttached?.RemoveAllAppenders();
                 _appenderAttached = null;
@@ -112,7 +124,7 @@ namespace log4net.tools
                 return null;
             }
 
-            using (new AppenderLocker(Lock, TakeLockTimeoutMs, exclusive: true))
+            using (new Locker(Lock, TakeLockTimeoutMs, exclusive: true))
             {
                 return _appenderAttached?.RemoveAppender(appender);
             }
@@ -125,17 +137,22 @@ namespace log4net.tools
                 return null;
             }
 
-            using (new AppenderLocker(Lock, TakeLockTimeoutMs, exclusive: true))
+            using (new Locker(Lock, TakeLockTimeoutMs, exclusive: true))
             {
                 return _appenderAttached?.RemoveAppender(name);
             }
         }
 
-        private void Append(IEnumerable<LoggingEvent> loggingEvents)
+        private void Append(IEnumerable<LoggingEvent> loggingEvents, CancellationToken token)
         {
             foreach (LoggingEvent loggingEvent in loggingEvents)
             {
-                using (new AppenderLocker(Lock, TakeLockTimeoutMs))
+                if (token.IsCancellationRequested)
+                {
+                    return; // here we lose the events which was not dequeued yet
+                }
+
+                using (new Locker(Lock, TakeLockTimeoutMs))
                 {
                     _appenderAttached?.AppendLoopOnAppenders(loggingEvent);
                 }
