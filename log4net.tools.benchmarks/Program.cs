@@ -1,24 +1,29 @@
-﻿using System;
-using System.Threading.Tasks;
+﻿using BenchmarkDotNet.Columns;
+using BenchmarkDotNet.Configs;
+using BenchmarkDotNet.Exporters.Csv;
+using BenchmarkDotNet.Jobs;
+using BenchmarkDotNet.Reports;
+using BenchmarkDotNet.Running;
+using Perfolizer.Horology;
 
 namespace log4net.tools.benchmarks
 {
     class Program
     {
-        private const string TestMessage = "Test message";
-        private const string ForwardedTestMessage = TestMessage + " (Forwarded)";
-
-        static async Task Main(string[] args)
+        static void Main(string[] args)
         {
-            log4net.Config.XmlConfigurator.Configure();
-            var rollingFileLogger = LogManager.GetLogger("RollingFileLogger");
-            var forwardingLogger = LogManager.GetLogger("Forwarding2RollingFileLogger");
+            var config = ManualConfig
+                .Create(DefaultConfig.Instance)
+                .AddJob(new Job
+                {
+                    Run = { LaunchCount = 1, WarmupCount = 2, IterationCount = 30 }
+                })
+                .AddColumn(new[] { StatisticColumn.Min, StatisticColumn.Max })
+                .WithSummaryStyle(SummaryStyle.Default.WithTimeUnit(TimeUnit.Millisecond))
+                .AddExporter(new CsvExporter(CsvSeparator.CurrentCulture,
+                    SummaryStyle.Default.WithTimeUnit(TimeUnit.Millisecond)));
 
-            rollingFileLogger.Info(TestMessage);
-            forwardingLogger.Info(ForwardedTestMessage);
-
-            await Task.Delay(2000); // allow loggs to be flushed
-            Console.WriteLine("Done!");
+            BenchmarkRunner.Run(typeof(Program).Assembly, config);
         }
     }
 }

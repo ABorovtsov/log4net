@@ -40,7 +40,7 @@ namespace log4net.tools
                 .StartNew(() => Append(_queue.GetConsumingEnumerable(cancellationToken), cancellationToken), 
                     cancellationToken, 
                     TaskCreationOptions.LongRunning, 
-                    TaskScheduler.Default);
+                    TaskScheduler.Current);
         }
 
         public void DoAppend(LoggingEvent loggingEvent)
@@ -50,7 +50,7 @@ namespace log4net.tools
                 return;
             }
 
-            loggingEvent.Fix = Fix;
+            //loggingEvent.Fix = Fix;
             if (!_queue.TryAdd(loggingEvent))
             {
                 ErrorLogger.Error("Cannot add the loggingEvent in to the queue");
