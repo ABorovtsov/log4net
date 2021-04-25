@@ -7,6 +7,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "log4net.tools", "log4net.to
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "log4net.tools.Tests", "log4net.tools.Tests\log4net.tools.Tests.csproj", "{29540E2F-AA6D-4E43-AB9A-709E5C708707}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "log4net.tools.benchmarks", "log4net.tools.benchmarks\log4net.tools.benchmarks.csproj", "{FD856B8E-F60C-4C24-96A7-867C11FE4A49}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,6 +23,10 @@ Global
 		{29540E2F-AA6D-4E43-AB9A-709E5C708707}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{29540E2F-AA6D-4E43-AB9A-709E5C708707}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{29540E2F-AA6D-4E43-AB9A-709E5C708707}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FD856B8E-F60C-4C24-96A7-867C11FE4A49}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FD856B8E-F60C-4C24-96A7-867C11FE4A49}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FD856B8E-F60C-4C24-96A7-867C11FE4A49}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FD856B8E-F60C-4C24-96A7-867C11FE4A49}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

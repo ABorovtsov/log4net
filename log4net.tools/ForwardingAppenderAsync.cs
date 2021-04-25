@@ -77,9 +77,20 @@ namespace log4net.tools
 
         public void Close()
         {
-            _cancellation?.Cancel();
 
-            _worker?.Dispose();
+            try
+            {
+                _cancellation?.Cancel();
+            }
+            catch (ObjectDisposedException e)
+            {
+            }
+
+            if (_worker.IsCanceled || _worker.IsFaulted || _worker.IsCompleted)
+            {
+                _worker?.Dispose();
+            }
+            
             _queue?.Dispose();
             Lock?.Dispose();
             _cancellation?.Dispose();
