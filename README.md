@@ -18,7 +18,7 @@ Benchmark comparative results:
 | RollingFileAppender           | 17.79 ms |
 
 ## Log Analyzer
-It's the python script which parses log4net logs and returns some stats.
+It's the python script which parses log4net logs and returns the stats related to the log levels and error messages.
 ```python
 import pprint
 from colorama import Fore, init
