@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Threading.Tasks;
 using BenchmarkDotNet.Attributes;
 
 namespace log4net.tools.benchmarks
@@ -15,14 +16,21 @@ namespace log4net.tools.benchmarks
             _forwardingLogger = LogManager.GetLogger("Forwarding2RollingFileLogger");
         }
 
-        [Benchmark(Description = "RollingFileAppender")]
+        [Benchmark(Description = "Sequential Load. RollingFileAppender")]
         [ArgumentsSource(nameof(Loggers))]
-        public void PssTest(ILog logger, string message)
+        public void SequentialLoggingTest(ILog logger, string message)
         {
-            for (int i = 0; i < 100; i++)
+            for (int i = 0; i < 1000; i++)
             {
                 logger.Info(message);
             }
+        }
+
+        [Benchmark(Description = "Parallel Load. RollingFileAppender")]
+        [ArgumentsSource(nameof(Loggers))]
+        public void ParallelLoggingTest(ILog logger, string message)
+        {
+            Parallel.For(0, 1000, i => logger.Info(message));
         }
 
         public IEnumerable<object[]> Loggers()

@@ -11,11 +11,21 @@ The example of xml configuration:
     <appender-ref ref="RollingFileAppender" />
 </appender>
 ```
-Benchmark comparative results:
+### Benchmark
+
+Table 1. 100 sequential info-logs:
+
 |                        Method |     Mean |
 |------------------------------ |---------:|
-| Forwarded RollingFileAppender |  0.05 ms |
 | RollingFileAppender           | 17.79 ms |
+| Forwarded RollingFileAppender |  0.05 ms |
+
+Table 2. 1000 parallel info-logs:
+
+|                        Method |      Mean |
+|------------------------------ |----------:|
+| RollingFileAppender           | 169.46 ms |
+| Forwarded RollingFileAppender |   0.49 ms |
 
 ## Log Analyzer
 It's the python script which parses log4net logs and returns some stats.
