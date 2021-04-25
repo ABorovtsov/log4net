@@ -3,11 +3,19 @@ Tools for log4net users
 
 ## ForwardingAppenderAsync
 Appender forwards LoggingEvents to a list of attached appenders asynchronously.
+
+The example of xml configuration:
 ```
 <appender name="ForwardingAppenderAsync" type="log4net.tools.ForwardingAppenderAsync">
+    <Fix value="260"/>
     <appender-ref ref="RollingFileAppender" />
 </appender>
 ```
+Benchmark comparative results:
+|                        Method |     Mean |
+|------------------------------ |---------:|
+| Forwarded RollingFileAppender |  0.05 ms |
+| RollingFileAppender           | 17.79 ms |
 
 ## Log Analyzer
 It's the python script which parses log4net logs and returns some stats.

@@ -16,7 +16,7 @@ namespace log4net.tools
     {
         public int BufferSize { get; set; }
         public IErrorLogger ErrorLogger { get; set; }
-        public FixFlags Fix { get; set; }
+        public FixFlags Fix { get; set; } = FixFlags.Properties | FixFlags.Exception | FixFlags.Message;
         public string Name { get; set; }
 
         private const int TakeLockTimeoutMs = 100;
