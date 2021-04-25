@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Diagnostics;
 using System.Threading;
 
 namespace log4net.tools
@@ -9,21 +8,7 @@ namespace log4net.tools
         private readonly ReaderWriterLockSlim _lock;
         private readonly bool _exclusive;
 
-        public Locker(ReaderWriterLockSlim @lock, bool exclusive = false)
-        {
-            _lock = @lock;
-            _exclusive = exclusive;
-
-            if (_exclusive)
-            {
-                _lock.EnterWriteLock();
-                return;
-            }
-
-            _lock.EnterReadLock();
-        }
-
-        public Locker(ReaderWriterLockSlim @lock, int timeoutMs, bool exclusive = false)
+        public Locker(ReaderWriterLockSlim @lock, int timeoutMs, IErrorLogger errorLogger, bool exclusive = false)
         {
             _lock = @lock;
             _exclusive = exclusive;
@@ -32,7 +17,7 @@ namespace log4net.tools
             {
                 if (!_lock.TryEnterWriteLock(timeoutMs))
                 {
-                    Trace.TraceError("Cannot take the write lock");
+                    errorLogger.Error("Cannot take the write lock");
                 }
 
                 return;
@@ -40,7 +25,7 @@ namespace log4net.tools
 
             if (!_lock.TryEnterReadLock(timeoutMs))
             {
-                Trace.TraceError("Cannot take the read lock");
+                errorLogger.Error("Cannot take the read lock");
             }
         }
 

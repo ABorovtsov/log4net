@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using log4net.Appender;
@@ -15,16 +14,20 @@ namespace log4net.tools
     /// </summary>
     public class ForwardingAppenderAsync : IAppender, IAppenderAttachable
     {
-        public string Name { get; set; }
-        public FixFlags Fix { get; set; } = FixFlags.All;
         public int BufferSize { get; set; }
+        public IErrorLogger ErrorLogger { get; set; } = new ErrorTracer();
+        public FixFlags Fix { get; set; } = FixFlags.All;
+        public string Name { get; set; }
 
         private const int TakeLockTimeoutMs = 100;
+
         private static readonly ReaderWriterLockSlim Lock = new ReaderWriterLockSlim(LockRecursionPolicy.SupportsRecursion);
+        
         private readonly BlockingCollection<LoggingEvent> _queue;
         private readonly Task _worker;
-        private AppenderAttachedImpl _appenderAttached;
         private readonly CancellationTokenSource _cancellation = new CancellationTokenSource();
+
+        private AppenderAttachedImpl _appenderAttached;
 
         public ForwardingAppenderAsync()
         {
@@ -50,7 +53,7 @@ namespace log4net.tools
             loggingEvent.Fix = Fix;
             if (!_queue.TryAdd(loggingEvent))
             {
-                Trace.TraceError("Cannot add the loggingEvent in to the queue");
+                ErrorLogger.Error("Cannot add the loggingEvent in to the queue");
             }
         }
 
@@ -61,7 +64,7 @@ namespace log4net.tools
                 throw new ArgumentNullException(nameof(newAppender));
             }
 
-            using (new Locker(Lock, TakeLockTimeoutMs, exclusive: true))
+            using (new Locker(Lock, TakeLockTimeoutMs, ErrorLogger, exclusive: true))
             {
                 if (_appenderAttached == null)
                 {
@@ -86,7 +89,7 @@ namespace log4net.tools
         {
             get
             {
-                using (new Locker(Lock, TakeLockTimeoutMs))
+                using (new Locker(Lock, TakeLockTimeoutMs, ErrorLogger))
                 {
                     return _appenderAttached == null 
                         ? AppenderCollection.EmptyCollection 
@@ -102,7 +105,7 @@ namespace log4net.tools
                 return null;
             }
 
-            using (new Locker(Lock, TakeLockTimeoutMs))
+            using (new Locker(Lock, TakeLockTimeoutMs, ErrorLogger))
             {
                 return _appenderAttached?.GetAppender(name);
             }
@@ -110,7 +113,7 @@ namespace log4net.tools
 
         public void RemoveAllAppenders()
         {
-            using (new Locker(Lock, TakeLockTimeoutMs, exclusive: true))
+            using (new Locker(Lock, TakeLockTimeoutMs, ErrorLogger, exclusive: true))
             {
                 _appenderAttached?.RemoveAllAppenders();
                 _appenderAttached = null;
@@ -124,7 +127,7 @@ namespace log4net.tools
                 return null;
             }
 
-            using (new Locker(Lock, TakeLockTimeoutMs, exclusive: true))
+            using (new Locker(Lock, TakeLockTimeoutMs, ErrorLogger, exclusive: true))
             {
                 return _appenderAttached?.RemoveAppender(appender);
             }
@@ -137,7 +140,7 @@ namespace log4net.tools
                 return null;
             }
 
-            using (new Locker(Lock, TakeLockTimeoutMs, exclusive: true))
+            using (new Locker(Lock, TakeLockTimeoutMs, ErrorLogger, exclusive: true))
             {
                 return _appenderAttached?.RemoveAppender(name);
             }
@@ -152,7 +155,7 @@ namespace log4net.tools
                     return; // here we lose the events which was not dequeued yet
                 }
 
-                using (new Locker(Lock, TakeLockTimeoutMs))
+                using (new Locker(Lock, TakeLockTimeoutMs, ErrorLogger))
                 {
                     _appenderAttached?.AppendLoopOnAppenders(loggingEvent);
                 }
