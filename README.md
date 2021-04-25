@@ -28,7 +28,7 @@ Table 2. 1000 parallel info-logs:
 | Forwarded RollingFileAppender |   0.49 ms |
 
 ## Log Analyzer
-It's the python script which parses log4net logs and returns some stats.
+It's the python script which parses log4net logs and returns the stats related to the log levels and error messages.
 ```python
 import pprint
 from colorama import Fore, init
