@@ -15,8 +15,8 @@ namespace log4net.tools
     public class ForwardingAppenderAsync : IAppender, IAppenderAttachable
     {
         public int BufferSize { get; set; }
-        public IErrorLogger ErrorLogger { get; set; } = new ErrorTracer();
-        public FixFlags Fix { get; set; } = FixFlags.All;
+        public IErrorLogger ErrorLogger { get; set; }
+        public FixFlags Fix { get; set; }
         public string Name { get; set; }
 
         private const int TakeLockTimeoutMs = 100;
@@ -31,6 +31,8 @@ namespace log4net.tools
 
         public ForwardingAppenderAsync()
         {
+            ErrorLogger = ErrorLogger ?? new ErrorTracer();
+
             _queue = BufferSize > 0
                 ? new BlockingCollection<LoggingEvent>(BufferSize) // call to Add may block until space is available to store the provided item (https://docs.microsoft.com/en-us/dotnet/api/system.collections.concurrent.blockingcollection-1.add?view=net-5.0#System_Collections_Concurrent_BlockingCollection_1_Add__0_)
                 : new BlockingCollection<LoggingEvent>();
@@ -50,7 +52,7 @@ namespace log4net.tools
                 return;
             }
 
-            //loggingEvent.Fix = Fix;
+            loggingEvent.Fix = Fix;
             if (!_queue.TryAdd(loggingEvent))
             {
                 ErrorLogger.Error("Cannot add the loggingEvent in to the queue");
