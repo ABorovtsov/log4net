@@ -2,6 +2,16 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
+    <Authors>Alexander Borovtsov</Authors>
+    <Copyright>Alexander Borovtsov</Copyright>
+    <RepositoryUrl>https://github.com/ABorovtsov/log4net</RepositoryUrl>
+    <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
+    <PackageTags>log4net async logging forwarding</PackageTags>
+    <PackageProjectUrl>https://github.com/ABorovtsov/log4net</PackageProjectUrl>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <Description>Tools for log4net users: 
+- ForwardingAppenderAsync forwards LoggingEvents to a list of attached appenders asynchronously.</Description>
+    <RepositoryType>git</RepositoryType>
   </PropertyGroup>
 
   <ItemGroup>
