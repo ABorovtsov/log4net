@@ -11,7 +11,7 @@ namespace log4net.tools
     /// <summary>
     /// Appender forwards LoggingEvents to a list of attached appenders asynchronously
     /// </summary>
-    public class ForwardingAppenderAsync : AttachableAppender, IAppender
+    public class ForwardingAppenderAsync : AttachableAppender, IAppender, IDisposable
     {
         public int BufferSize { get; set; }
         public FixFlags Fix { get; set; } = FixFlags.Properties | FixFlags.Exception | FixFlags.Message;
@@ -54,22 +54,8 @@ namespace log4net.tools
 
         public void Close()
         {
-
-            try
-            {
-                _cancellation?.Cancel();
-            }
-            catch (ObjectDisposedException e)
-            {
-            }
-
-            if (_worker.IsCanceled || _worker.IsFaulted || _worker.IsCompleted)
-            {
-                _worker?.Dispose();
-            }
-            
-            _queue?.Dispose();
-            _cancellation?.Dispose();
+            SwallowHelper.TryDo(() => _cancellation?.Cancel(), ErrorLogger);
+            Dispose();
         }
 
         private void Append(IEnumerable<LoggingEvent> loggingEvents, CancellationToken token)
@@ -83,6 +69,17 @@ namespace log4net.tools
 
                 AppendLoopOnAppenders(loggingEvent);
             }
+        }
+
+        public new void Dispose()
+        {
+            if (_worker?.IsCanceled == true || _worker?.IsFaulted == true || _worker?.IsCompleted == true)
+            {
+                SwallowHelper.TryDo(() => _worker?.Dispose(), ErrorLogger);
+            }
+
+            SwallowHelper.TryDo(() => _queue?.Dispose(), ErrorLogger);
+            base.Dispose();
         }
     }
 }

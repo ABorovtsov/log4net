@@ -26,17 +26,31 @@ namespace log4net.tools.Tests
         }
 
         [Fact]
-        public void TestSetupAppender()
+        public void AppendTest()
         {
             SetupRepository();
 
             Assert.Equal(0, _countingAppender.Counter);
 
-            ILogger logger = _hierarchy.GetLogger("test");
-            logger.Log(typeof(ForwardingAppenderAsync), Level.Warn, "Message logged", null);
+            Log();
             Thread.Sleep(1000);
 
             Assert.Equal(1, _countingAppender.Counter);
+        }
+
+        [Fact]
+        public void CloseTest()
+        {
+            SetupRepository();
+            Log();
+
+            _forwardingAppender.Close();
+        }
+
+        private void Log()
+        {
+            ILogger logger = _hierarchy.GetLogger("test");
+            logger.Log(typeof(ForwardingAppenderAsync), Level.Warn, "Message logged", null);
         }
     }
 }
