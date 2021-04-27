@@ -16,6 +16,7 @@ namespace log4net.tools
         public int BufferSize { get; set; }
         public FixFlags Fix { get; set; } = FixFlags.Properties | FixFlags.Exception | FixFlags.Message;
         public string Name { get; set; }
+        public BufferOverflowBehaviour BufferOverflowBehaviour { get; set; } = BufferOverflowBehaviour.DirectForwarding;
 
         private static readonly IErrorLogger ErrorLogger = new ErrorTracer();
 
@@ -45,10 +46,26 @@ namespace log4net.tools
             }
 
             loggingEvent.Fix = Fix;
-            if (!_queue.TryAdd(loggingEvent))
+            switch (BufferOverflowBehaviour)
             {
-                // here we lose the events
-                ErrorLogger.Error("Cannot add the loggingEvent in to the queue");
+                case BufferOverflowBehaviour.RejectNew:
+                    if (!_queue.TryAdd(loggingEvent))
+                    {
+                        ErrorLogger.Error("Cannot add the loggingEvent in to the queue");
+                    }
+                    break;
+                case BufferOverflowBehaviour.Wait:
+                    _queue.Add(loggingEvent);
+                    break;
+                case BufferOverflowBehaviour.DirectForwarding:
+                    if (!_queue.TryAdd(loggingEvent))
+                    {
+                        ErrorLogger.Error("Cannot add the loggingEvent in to the queue. The direct forwarding is used");
+                        AppendLoopOnAppenders(loggingEvent);
+                    }
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException();
             }
         }
 
