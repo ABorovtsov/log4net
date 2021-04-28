@@ -1,33 +1,44 @@
-# log4net
-Tools for log4net users
+# log4net tools
 
-## ForwardingAppenderAsync
-Appender forwards LoggingEvents to a list of attached appenders asynchronously.
+## [ForwardingAppenderAsync](https://github.com/ABorovtsov/log4net/blob/main/log4net.tools/ForwardingAppenderAsync.cs)
+Appender forwards LoggingEvents to a list of attached appenders asynchronously. It uses an internal queue and a worker task which dequeues items in background. The modes of handling the buffer overflow situation described [here](https://github.com/ABorovtsov/log4net/blob/main/log4net.tools/BufferOverflowBehaviour.cs).
 
-The example of xml configuration:
+The example of the minimal xml configuration:
 ```
 <appender name="ForwardingAppenderAsync" type="log4net.tools.ForwardingAppenderAsync">
-    <Fix value="260"/>
     <appender-ref ref="RollingFileAppender" />
 </appender>
 ```
-### Benchmark
 
-#### 100 sequential info-logs:
+The example of the advanced xml configuration:
+```
+<appender name="ForwardingAppenderAsync" type="log4net.tools.ForwardingAppenderAsync">
+    <BufferSize value="1000"/>
+    <Fix value="260"/>
+    <BufferOverflowBehaviour value="RejectNew"/>
 
-|                        Method |     Mean |
-|------------------------------ |---------:|
-| RollingFileAppender           | 17.79 ms |
-| Forwarded RollingFileAppender |  0.05 ms |
+    <appender-ref ref="DebugAppender" />
+    <appender-ref ref="RollingFileAppender" />
+    <appender-ref ref="AdoNetAppender" />
+</appender>
+```
+### [Benchmark](https://github.com/ABorovtsov/log4net/blob/main/log4net.tools.benchmarks/ForwardingAppenderTest.cs)
 
-#### 1000 parallel info-logs:
+#### 1000 sequential info-logs:
 
 |                        Method |      Mean |
 |------------------------------ |----------:|
-| RollingFileAppender           | 169.46 ms |
+| RollingFileAppender           | 191.75 ms |
 | Forwarded RollingFileAppender |   0.49 ms |
 
-## Log Analyzer
+#### 1000 "parallel" (Parallel.For) info-logs:
+
+|                        Method |      Mean |
+|------------------------------ |----------:|
+| RollingFileAppender           | 204.16 ms |
+| Forwarded RollingFileAppender |   0.51 ms |
+
+## [Log Analyzer](https://github.com/ABorovtsov/log4net/blob/main/log_analyzer/simple_log_parser.py)
 It's the python script which parses log4net logs and returns the stats related to the log levels and error messages.
 ```python
 import pprint
