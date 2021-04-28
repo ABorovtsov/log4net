@@ -12,8 +12,8 @@
     <Description>Tools for log4net users: 
 - ForwardingAppenderAsync forwards LoggingEvents to a list of attached appenders asynchronously.</Description>
     <RepositoryType>git</RepositoryType>
-    <Version>1.0.1</Version>
-    <AssemblyVersion>1.0.1.0</AssemblyVersion>
+    <Version>1.1.0</Version>
+    <AssemblyVersion>1.1.0.0</AssemblyVersion>
     <PackageIcon>icon.png</PackageIcon>
   </PropertyGroup>
 

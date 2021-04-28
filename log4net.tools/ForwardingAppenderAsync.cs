@@ -11,7 +11,7 @@ namespace log4net.tools
     /// <summary>
     /// Appender forwards LoggingEvents to a list of attached appenders asynchronously
     /// </summary>
-    public class ForwardingAppenderAsync : AttachableAppender, IAppender, IDisposable
+    public class ForwardingAppenderAsync : AttachableAppender, IAppender, IOptionHandler, IDisposable
     {
         public int BufferSize { get; set; }
         public FixFlags Fix { get; set; } = FixFlags.Properties | FixFlags.Exception | FixFlags.Message;
@@ -20,23 +20,12 @@ namespace log4net.tools
 
         private static readonly IErrorLogger ErrorLogger = new ErrorTracer();
 
-        private readonly BlockingCollection<LoggingEvent> _queue;
-        private readonly Task _worker;
+        private BlockingCollection<LoggingEvent> _buffer;
+        private Task _worker;
         private readonly CancellationTokenSource _cancellation = new CancellationTokenSource();
 
         public ForwardingAppenderAsync() : base(ErrorLogger)
-        {
-            _queue = BufferSize > 0
-                ? new BlockingCollection<LoggingEvent>(BufferSize) // call to Add may block until space is available to store the provided item (https://docs.microsoft.com/en-us/dotnet/api/system.collections.concurrent.blockingcollection-1.add?view=net-5.0#System_Collections_Concurrent_BlockingCollection_1_Add__0_)
-                : new BlockingCollection<LoggingEvent>();
-
-            var cancellationToken = _cancellation.Token;
-            _worker = Task.Factory
-                .StartNew(() => Append(_queue.GetConsumingEnumerable(cancellationToken), cancellationToken),
-                    cancellationToken,
-                    TaskCreationOptions.LongRunning,
-                    TaskScheduler.Current);
-        }
+        {}
 
         public void DoAppend(LoggingEvent loggingEvent)
         {
@@ -46,21 +35,34 @@ namespace log4net.tools
             }
 
             loggingEvent.Fix = Fix;
+
+            var errorMessage = "Cannot add the loggingEvent in to the buffer";
+            if (BufferSize == 0)
+            {
+                if (!_buffer.TryAdd(loggingEvent))
+                {
+                    ErrorLogger.Error(errorMessage);
+                }
+
+                return;
+            }
+
+            // bounded buffer
             switch (BufferOverflowBehaviour)
             {
                 case BufferOverflowBehaviour.RejectNew:
-                    if (!_queue.TryAdd(loggingEvent))
+                    if (!_buffer.TryAdd(loggingEvent))
                     {
-                        ErrorLogger.Error("Cannot add the loggingEvent in to the queue");
+                        ErrorLogger.Error(errorMessage);
                     }
                     break;
                 case BufferOverflowBehaviour.Wait:
-                    _queue.Add(loggingEvent);
+                    _buffer.Add(loggingEvent);
                     break;
                 case BufferOverflowBehaviour.DirectForwarding:
-                    if (!_queue.TryAdd(loggingEvent))
+                    if (!_buffer.TryAdd(loggingEvent))
                     {
-                        ErrorLogger.Error("Cannot add the loggingEvent in to the queue. The direct forwarding is used");
+                        ErrorLogger.Error(errorMessage + " The direct forwarding is used");
                         AppendLoopOnAppenders(loggingEvent);
                     }
                     break;
@@ -95,8 +97,22 @@ namespace log4net.tools
                 SwallowHelper.TryDo(() => _worker?.Dispose(), ErrorLogger);
             }
 
-            SwallowHelper.TryDo(() => _queue?.Dispose(), ErrorLogger);
+            SwallowHelper.TryDo(() => _buffer?.Dispose(), ErrorLogger);
             base.Dispose();
+        }
+
+        public void ActivateOptions()
+        {
+            _buffer = BufferSize > 0
+                ? new BlockingCollection<LoggingEvent>(BufferSize) // call to Add may block until space is available to store the provided item (https://docs.microsoft.com/en-us/dotnet/api/system.collections.concurrent.blockingcollection-1.add?view=net-5.0#System_Collections_Concurrent_BlockingCollection_1_Add__0_)
+                : new BlockingCollection<LoggingEvent>();
+
+            var cancellationToken = _cancellation.Token;
+            _worker = Task.Factory
+                .StartNew(() => Append(_buffer.GetConsumingEnumerable(cancellationToken), cancellationToken),
+                    cancellationToken,
+                    TaskCreationOptions.LongRunning,
+                    TaskScheduler.Current);
         }
     }
 }

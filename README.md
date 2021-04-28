@@ -13,14 +13,14 @@ The example of xml configuration:
 ```
 ### Benchmark
 
-Table 1. 100 sequential info-logs:
+#### 100 sequential info-logs:
 
 |                        Method |     Mean |
 |------------------------------ |---------:|
 | RollingFileAppender           | 17.79 ms |
 | Forwarded RollingFileAppender |  0.05 ms |
 
-Table 2. 1000 parallel info-logs:
+#### 1000 parallel info-logs:
 
 |                        Method |      Mean |
 |------------------------------ |----------:|
