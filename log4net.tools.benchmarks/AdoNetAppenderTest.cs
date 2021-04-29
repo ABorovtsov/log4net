@@ -4,21 +4,19 @@ using BenchmarkDotNet.Attributes;
 
 namespace log4net.tools.benchmarks
 {
-    public class ForwardingAppenderTest
+    public class AdoNetAppenderTest
     {
-        private readonly ILog _rollingFileLogger;
+        private readonly ILog _originalLogger;
         private readonly ILog _forwardingLogger;
-        private readonly ILog _bufferingLogger;
         
-        public ForwardingAppenderTest()
+        public AdoNetAppenderTest()
         {
             Config.XmlConfigurator.Configure();
-            _rollingFileLogger = LogManager.GetLogger("RollingFileLogger");
-            _forwardingLogger = LogManager.GetLogger("Forwarding2RollingFileLogger");
-            _bufferingLogger = LogManager.GetLogger("BufferingForwardingLogger");
+            _originalLogger = LogManager.GetLogger("AdoNetLogger");
+            _forwardingLogger = LogManager.GetLogger("ForwardingAdoNetLogger");
         }
 
-        [Benchmark(Description = "Sequential Load. RollingFileAppender")]
+        [Benchmark(Description = "Sequential Load")]
         [ArgumentsSource(nameof(Loggers))]
         public void SequentialLoggingTest(ILog logger, string message)
         {
@@ -28,7 +26,7 @@ namespace log4net.tools.benchmarks
             }
         }
 
-        [Benchmark(Description = "Parallel Load. RollingFileAppender")]
+        [Benchmark(Description = "Parallel Load")]
         [ArgumentsSource(nameof(Loggers))]
         public void ParallelLoggingTest(ILog logger, string message)
         {
@@ -37,9 +35,8 @@ namespace log4net.tools.benchmarks
 
         public IEnumerable<object[]> Loggers()
         {
-            yield return new object[] { _rollingFileLogger, "Original" };
+            yield return new object[] { _originalLogger, "Original" };
             yield return new object[] { _forwardingLogger, "Forwarding" };
-            yield return new object[] { _bufferingLogger, "Buffering" };
         }
     }
 }

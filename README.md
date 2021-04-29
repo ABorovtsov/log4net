@@ -22,7 +22,7 @@ The example of the advanced xml configuration:
     <appender-ref ref="AdoNetAppender" />
 </appender>
 ```
-### [Benchmark](https://github.com/ABorovtsov/log4net/blob/main/log4net.tools.benchmarks/ForwardingAppenderTest.cs)
+### [RollingFileAppender Benchmark](https://github.com/ABorovtsov/log4net/blob/main/log4net.tools.benchmarks/RollingFileAppenderTest.cs)
 
 #### 10K of sequential info-logs:
 
@@ -39,6 +39,23 @@ The example of the advanced xml configuration:
 | RollingFileAppender           | 1,668.64 ms |
 | Buffered RollingFileAppender  | 254.72 ms |
 | **Forwarded** RollingFileAppender |   4.45 ms |
+
+### [AdoNetAppender Benchmark](https://github.com/ABorovtsov/log4net/blob/main/log4net.tools.benchmarks/AdoNetAppenderTest.cs)
+
+#### 10K of sequential info-logs:
+
+|                        Method |      Mean |
+|------------------------------ |----------:|
+| AdoNetAppender           | 3,336.11 ms |
+| **Forwarded** AdoNetAppender |5.54 ms|
+
+#### 10K of "parallel" (Parallel.For) info-logs:
+
+|                        Method |      Mean |
+|------------------------------ |----------:|
+| AdoNetAppender           | 2,797.39 ms |
+| **Forwarded** AdoNetAppender |   4.62 ms |
+
 
 ## [Log Analyzer](https://github.com/ABorovtsov/log4net/blob/main/log_analyzer/simple_log_parser.py)
 It's the python script which parses log4net logs and returns the stats related to the log levels and error messages.
