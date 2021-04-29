@@ -24,19 +24,21 @@ The example of the advanced xml configuration:
 ```
 ### [Benchmark](https://github.com/ABorovtsov/log4net/blob/main/log4net.tools.benchmarks/ForwardingAppenderTest.cs)
 
-#### 1000 sequential info-logs:
+#### 10K of sequential info-logs:
 
 |                        Method |      Mean |
 |------------------------------ |----------:|
-| RollingFileAppender           | 191.75 ms |
-| Forwarded RollingFileAppender |   0.49 ms |
+| RollingFileAppender           | 1,742.69 ms |
+| Buffered RollingFileAppender  | 180.728 ms |
+| **Forwarded** RollingFileAppender |5.43 ms|
 
-#### 1000 "parallel" (Parallel.For) info-logs:
+#### 10K of "parallel" (Parallel.For) info-logs:
 
 |                        Method |      Mean |
 |------------------------------ |----------:|
-| RollingFileAppender           | 204.16 ms |
-| Forwarded RollingFileAppender |   0.51 ms |
+| RollingFileAppender           | 1,668.64 ms |
+| Buffered RollingFileAppender  | 254.72 ms |
+| **Forwarded** RollingFileAppender |   4.45 ms |
 
 ## [Log Analyzer](https://github.com/ABorovtsov/log4net/blob/main/log_analyzer/simple_log_parser.py)
 It's the python script which parses log4net logs and returns the stats related to the log levels and error messages.
