@@ -17,6 +17,7 @@ namespace log4net.tools
         public FixFlags Fix { get; set; } = FixFlags.Properties | FixFlags.Exception | FixFlags.Message;
         public string Name { get; set; }
         public BufferOverflowBehaviour BufferOverflowBehaviour { get; set; } = BufferOverflowBehaviour.DirectForwarding;
+        public BufferClosingType BufferClosingType { get; set; } = BufferClosingType.DumpToErrorHandler;
 
         private static readonly IErrorLogger ErrorLogger = new ErrorTracer();
 
@@ -36,18 +37,30 @@ namespace log4net.tools
 
             loggingEvent.Fix = Fix;
 
-            var errorMessage = "Cannot add the loggingEvent in to the buffer";
-            if (BufferSize == 0)
+            try
             {
-                if (!_buffer.TryAdd(loggingEvent))
+                if (BufferSize == 0)
                 {
-                    ErrorLogger.Error(errorMessage);
+                    if (!_buffer.TryAdd(loggingEvent))
+                    {
+                        ErrorLogger.Error("Cannot add the loggingEvent in to the buffer");
+                    }
+
+                    return;
                 }
 
-                return;
+                DoAppendBoundedBuffer(loggingEvent);
             }
+            catch (Exception ex)
+            {
+                ErrorLogger.Error(ex.ToString());
+            }
+        }
 
-            // bounded buffer
+        private void DoAppendBoundedBuffer(LoggingEvent loggingEvent)
+        {
+            var errorMessage = "Cannot add the loggingEvent in to the buffer";
+
             switch (BufferOverflowBehaviour)
             {
                 case BufferOverflowBehaviour.RejectNew:
@@ -55,6 +68,7 @@ namespace log4net.tools
                     {
                         ErrorLogger.Error(errorMessage);
                     }
+
                     break;
                 case BufferOverflowBehaviour.Wait:
                     _buffer.Add(loggingEvent);
@@ -65,6 +79,7 @@ namespace log4net.tools
                         ErrorLogger.Error(errorMessage + " The direct forwarding is used");
                         AppendLoopOnAppenders(loggingEvent);
                     }
+
                     break;
                 default:
                     throw new ArgumentOutOfRangeException();
@@ -73,8 +88,42 @@ namespace log4net.tools
 
         public void Close()
         {
+            _buffer.CompleteAdding();
             SwallowHelper.TryDo(() => _cancellation?.Cancel(), ErrorLogger);
+
+            var bufferedEventCount = _buffer.Count;
+            if (bufferedEventCount > 0)
+            {
+                ErrorLogger.Error($"There are {bufferedEventCount} LoggingEvents which are not logged yet at the moment of closing the appender");
+                SwallowHelper.TryDo(CloseBuffer, ErrorLogger);
+            }
+
             Dispose();
+        }
+
+        private void CloseBuffer()
+        {
+            switch (BufferClosingType)
+            {
+                case BufferClosingType.Immediate:
+                    break;
+                case BufferClosingType.DumpToErrorHandler:
+                    foreach (var loggingEvent in _buffer)
+                    {
+                        ErrorLogger.Error(loggingEvent.Serialize());
+                    }
+
+                    break;
+                case BufferClosingType.DumpToLog:
+                    foreach (var loggingEvent in _buffer)
+                    {
+                        AppendLoopOnAppenders(loggingEvent);
+                    }
+
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
         }
 
         private void Append(IEnumerable<LoggingEvent> loggingEvents, CancellationToken token)

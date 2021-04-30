@@ -16,6 +16,7 @@ The example of the advanced xml configuration:
     <BufferSize value="1000"/>
     <Fix value="260"/>
     <BufferOverflowBehaviour value="RejectNew"/>
+    <BufferClosingType value="DumpToLog"/>
 
     <appender-ref ref="DebugAppender" />
     <appender-ref ref="RollingFileAppender" />
