@@ -16,6 +16,9 @@
     <AssemblyVersion>1.2.0.0</AssemblyVersion>
     <PackageIcon>icon.png</PackageIcon>
     <FileVersion>1.2.0.0</FileVersion>
+    <PackageReleaseNotes>- handle closing of the appender when the buffer is not empty;
+- update the error handling;
+- update tests.</PackageReleaseNotes>
   </PropertyGroup>
 
   <ItemGroup>
