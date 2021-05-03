@@ -17,5 +17,10 @@ namespace log4net.tools
         /// Name of a method which was measured
         /// </summary>
         public string CallerName { get; set; }
+
+        /// <summary>
+        /// Number of bytes which are currently allocated in the managed memory
+        /// </summary>
+        public long AllocatedBytes { get; set; }
     }
 }

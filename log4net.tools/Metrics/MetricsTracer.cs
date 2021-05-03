@@ -1,4 +1,5 @@
-﻿using System.Diagnostics;
+﻿using System;
+using System.Diagnostics;
 
 namespace log4net.tools
 {
@@ -9,9 +10,10 @@ namespace log4net.tools
             var data = new
             {
                 latency.DateTime,
-                latency.LatencyUs,
+                LatencyUs = latency.LatencyUs.ToString("F1"),
                 latency.BufferSize,
-                latency.CallerName
+                latency.CallerName,
+                latency.AllocatedBytes
             };
 
             Trace.TraceInformation($"{nameof(MetricsTracer)}: {data}");

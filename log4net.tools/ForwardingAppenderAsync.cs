@@ -17,7 +17,7 @@ namespace log4net.tools
         public FixFlags Fix { get; set; } = FixFlags.Properties | FixFlags.Exception | FixFlags.Message;
         public string Name { get; set; }
         public BufferOverflowBehaviour BufferOverflowBehaviour { get; set; } = BufferOverflowBehaviour.DirectForwarding;
-        public BufferClosingType BufferClosingType { get; set; } = BufferClosingType.DumpToErrorHandler;
+        public BufferClosingType BufferClosingType { get; set; } = BufferClosingType.Immediate;
 
         protected BlockingCollection<LoggingEvent> Buffer;
 
@@ -60,15 +60,17 @@ namespace log4net.tools
 
         public void Close()
         {
-            Buffer?.CompleteAdding();
+            SwallowHelper.TryDo(() => Buffer?.CompleteAdding(), ErrorLogger);
             SwallowHelper.TryDo(() => _cancellation?.Cancel(), ErrorLogger);
-
-            var bufferedEventCount = Buffer?.Count ?? 0;
-            if (bufferedEventCount > 0)
+            SwallowHelper.TryDo(() =>
             {
-                ErrorLogger.Error($"There are {bufferedEventCount} LoggingEvents which are not logged yet at the moment of closing the appender");
-                SwallowHelper.TryDo(CloseBuffer, ErrorLogger);
-            }
+                var bufferedEventCount = Buffer?.Count ?? 0;
+                if (bufferedEventCount > 0)
+                {
+                    ErrorLogger.Error($"There are {bufferedEventCount} LoggingEvents which are not logged yet at the moment of closing the appender");
+                    CloseBuffer();
+                }
+            }, ErrorLogger);
 
             Dispose();
         }
@@ -81,6 +83,7 @@ namespace log4net.tools
             }
 
             SwallowHelper.TryDo(() => Buffer?.Dispose(), ErrorLogger);
+            SwallowHelper.TryDo(RemoveAllAppenders, ErrorLogger);
             base.Dispose();
         }
 

@@ -17,7 +17,8 @@ namespace log4net.tools
             {
                 BufferSize = bufferSize,
                 CallerName = callerMemberName,
-                DateTime = DateTime.Now
+                DateTime = DateTime.Now,
+                AllocatedBytes = GC.GetTotalMemory(false)
             };
 
             _stopWatch = new Stopwatch();

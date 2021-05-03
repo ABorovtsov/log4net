@@ -8,7 +8,7 @@ namespace log4net.tools
         {
             if (message != null)
             {
-                Trace.TraceError(message);
+                Trace.TraceError($"{nameof(ErrorTracer)}: Error - {message}");
             }
         }
     }
