@@ -102,8 +102,13 @@ namespace log4net.tools
             }
         }
 
-        protected void AppendLoopOnAppenders(LoggingEvent loggingEvent)
+        protected virtual void AppendLoopOnAppenders(LoggingEvent loggingEvent)
         {
+            if (loggingEvent == null)
+            {
+                return;
+            }
+
             using (new Locker(_locker, _lockTimeoutMs, _errorLogger))
             {
                 _appenderAttached?.AppendLoopOnAppenders(loggingEvent);

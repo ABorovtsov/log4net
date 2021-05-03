@@ -6,7 +6,10 @@ namespace log4net.tools
     {
         public void Error(string message)
         {
-            Trace.TraceError(message);
+            if (message != null)
+            {
+                Trace.TraceError(message);
+            }
         }
     }
 }

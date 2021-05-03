@@ -2,7 +2,7 @@
 
 namespace log4net.tools
 {
-    public static class LoggingEventExtensions
+    internal static class LoggingEventExtensions
     {
         /// <summary>
         /// Converts LoggingEvent to plain string for logging

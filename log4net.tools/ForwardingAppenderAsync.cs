@@ -9,7 +9,7 @@ using log4net.Core;
 namespace log4net.tools
 {
     /// <summary>
-    /// Appender forwards LoggingEvents to a list of attached appenders asynchronously
+    /// The appender forwards LoggingEvents to a list of attached appenders asynchronously
     /// </summary>
     public class ForwardingAppenderAsync : AttachableAppender, IAppender, IOptionHandler, IDisposable
     {
@@ -19,14 +19,15 @@ namespace log4net.tools
         public BufferOverflowBehaviour BufferOverflowBehaviour { get; set; } = BufferOverflowBehaviour.DirectForwarding;
         public BufferClosingType BufferClosingType { get; set; } = BufferClosingType.DumpToErrorHandler;
 
+        protected BlockingCollection<LoggingEvent> Buffer;
+
         private static readonly IErrorLogger ErrorLogger = new ErrorTracer();
 
-        private BlockingCollection<LoggingEvent> _buffer;
-        private Task _worker;
         private readonly CancellationTokenSource _cancellation = new CancellationTokenSource();
+        private Task _worker;
 
         public ForwardingAppenderAsync() : base(ErrorLogger)
-        {}
+        { }
 
         public void DoAppend(LoggingEvent loggingEvent)
         {
@@ -41,7 +42,7 @@ namespace log4net.tools
             {
                 if (BufferSize == 0)
                 {
-                    if (!_buffer.TryAdd(loggingEvent))
+                    if (!Buffer.TryAdd(loggingEvent))
                     {
                         ErrorLogger.Error("Cannot add the loggingEvent in to the buffer");
                     }
@@ -57,41 +58,12 @@ namespace log4net.tools
             }
         }
 
-        private void DoAppendBoundedBuffer(LoggingEvent loggingEvent)
-        {
-            var errorMessage = "Cannot add the loggingEvent in to the buffer";
-
-            switch (BufferOverflowBehaviour)
-            {
-                case BufferOverflowBehaviour.RejectNew:
-                    if (!_buffer.TryAdd(loggingEvent))
-                    {
-                        ErrorLogger.Error(errorMessage);
-                    }
-
-                    break;
-                case BufferOverflowBehaviour.Wait:
-                    _buffer.Add(loggingEvent);
-                    break;
-                case BufferOverflowBehaviour.DirectForwarding:
-                    if (!_buffer.TryAdd(loggingEvent))
-                    {
-                        ErrorLogger.Error(errorMessage + " The direct forwarding is used");
-                        AppendLoopOnAppenders(loggingEvent);
-                    }
-
-                    break;
-                default:
-                    throw new ArgumentOutOfRangeException();
-            }
-        }
-
         public void Close()
         {
-            _buffer.CompleteAdding();
+            Buffer?.CompleteAdding();
             SwallowHelper.TryDo(() => _cancellation?.Cancel(), ErrorLogger);
 
-            var bufferedEventCount = _buffer.Count;
+            var bufferedEventCount = Buffer?.Count ?? 0;
             if (bufferedEventCount > 0)
             {
                 ErrorLogger.Error($"There are {bufferedEventCount} LoggingEvents which are not logged yet at the moment of closing the appender");
@@ -101,6 +73,31 @@ namespace log4net.tools
             Dispose();
         }
 
+        public new void Dispose()
+        {
+            if (_worker?.IsCanceled == true || _worker?.IsFaulted == true || _worker?.IsCompleted == true)
+            {
+                SwallowHelper.TryDo(() => _worker?.Dispose(), ErrorLogger);
+            }
+
+            SwallowHelper.TryDo(() => Buffer?.Dispose(), ErrorLogger);
+            base.Dispose();
+        }
+
+        public void ActivateOptions()
+        {
+            Buffer = BufferSize > 0
+                ? new BlockingCollection<LoggingEvent>(BufferSize) // call to Add may block until space is available to store the provided item (https://docs.microsoft.com/en-us/dotnet/api/system.collections.concurrent.blockingcollection-1.add?view=net-5.0#System_Collections_Concurrent_BlockingCollection_1_Add__0_)
+                : new BlockingCollection<LoggingEvent>();
+
+            var cancellationToken = _cancellation.Token;
+            _worker = Task.Factory
+                .StartNew(() => Append(Buffer.GetConsumingEnumerable(cancellationToken), cancellationToken),
+                    cancellationToken,
+                    TaskCreationOptions.LongRunning,
+                    TaskScheduler.Current);
+        }
+
         private void CloseBuffer()
         {
             switch (BufferClosingType)
@@ -108,15 +105,44 @@ namespace log4net.tools
                 case BufferClosingType.Immediate:
                     break;
                 case BufferClosingType.DumpToErrorHandler:
-                    foreach (var loggingEvent in _buffer)
+                    foreach (var loggingEvent in Buffer)
                     {
                         ErrorLogger.Error(loggingEvent.Serialize());
                     }
 
                     break;
                 case BufferClosingType.DumpToLog:
-                    foreach (var loggingEvent in _buffer)
+                    foreach (var loggingEvent in Buffer)
                     {
+                        AppendLoopOnAppenders(loggingEvent);
+                    }
+
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
+        }
+
+        private void DoAppendBoundedBuffer(LoggingEvent loggingEvent)
+        {
+            var errorMessage = "Cannot add the loggingEvent in to the buffer";
+
+            switch (BufferOverflowBehaviour)
+            {
+                case BufferOverflowBehaviour.RejectNew:
+                    if (!Buffer.TryAdd(loggingEvent))
+                    {
+                        ErrorLogger.Error(errorMessage);
+                    }
+
+                    break;
+                case BufferOverflowBehaviour.Wait:
+                    Buffer.Add(loggingEvent);
+                    break;
+                case BufferOverflowBehaviour.DirectForwarding:
+                    if (!Buffer.TryAdd(loggingEvent))
+                    {
+                        ErrorLogger.Error(errorMessage + " The direct forwarding is used");
                         AppendLoopOnAppenders(loggingEvent);
                     }
 
@@ -137,31 +163,6 @@ namespace log4net.tools
 
                 AppendLoopOnAppenders(loggingEvent);
             }
-        }
-
-        public new void Dispose()
-        {
-            if (_worker?.IsCanceled == true || _worker?.IsFaulted == true || _worker?.IsCompleted == true)
-            {
-                SwallowHelper.TryDo(() => _worker?.Dispose(), ErrorLogger);
-            }
-
-            SwallowHelper.TryDo(() => _buffer?.Dispose(), ErrorLogger);
-            base.Dispose();
-        }
-
-        public void ActivateOptions()
-        {
-            _buffer = BufferSize > 0
-                ? new BlockingCollection<LoggingEvent>(BufferSize) // call to Add may block until space is available to store the provided item (https://docs.microsoft.com/en-us/dotnet/api/system.collections.concurrent.blockingcollection-1.add?view=net-5.0#System_Collections_Concurrent_BlockingCollection_1_Add__0_)
-                : new BlockingCollection<LoggingEvent>();
-
-            var cancellationToken = _cancellation.Token;
-            _worker = Task.Factory
-                .StartNew(() => Append(_buffer.GetConsumingEnumerable(cancellationToken), cancellationToken),
-                    cancellationToken,
-                    TaskCreationOptions.LongRunning,
-                    TaskScheduler.Current);
         }
     }
 }
