@@ -84,6 +84,7 @@ The example of the advanced xml configuration:
     <appender-ref ref="AdoNetAppender" />
 </appender>
 ```
+MetricsCsvWriter is available in the log4net.tools.integration package.
 
 The example of the output:
 ```csv

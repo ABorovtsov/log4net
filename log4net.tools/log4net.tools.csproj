@@ -10,15 +10,15 @@
     <PackageProjectUrl>https://github.com/ABorovtsov/log4net</PackageProjectUrl>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <Description>Tools for log4net users: 
-- ForwardingAppenderAsync forwards LoggingEvents to a list of attached appenders asynchronously.</Description>
+- ForwardingAppenderAsync forwards LoggingEvents to a list of attached appenders asynchronously;
+- ForwardingAppenderAsyncWithMetrics do the same as ForwardingAppenderAsync but with metrics.</Description>
     <RepositoryType>git</RepositoryType>
     <Version>1.3.0</Version>
     <AssemblyVersion>1.3.0.0</AssemblyVersion>
     <PackageIcon>icon.png</PackageIcon>
     <FileVersion>1.3.0.0</FileVersion>
-    <PackageReleaseNotes>- introduce the ForwardingAppenderAsyncWithMetrics.
-- introduce the metrics csv writer.
-- update the error handling;</PackageReleaseNotes>
+    <PackageReleaseNotes>- introduce the ForwardingAppenderAsyncWithMetrics;
+- update the error handling.</PackageReleaseNotes>
   </PropertyGroup>
 
   <ItemGroup>
@@ -26,7 +26,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Include="icon.png">
+    <None Include="..\img\icon.png">
       <Pack>True</Pack>
       <PackagePath></PackagePath>
     </None>
