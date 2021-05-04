@@ -23,7 +23,9 @@ namespace log4net.tools.benchmarks
                 .AddExporter(new CsvExporter(CsvSeparator.CurrentCulture,
                     SummaryStyle.Default.WithTimeUnit(TimeUnit.Millisecond)));
 
-            BenchmarkRunner.Run(typeof(Program).Assembly, config);
+            //BenchmarkRunner.Run(typeof(Program).Assembly, config);
+            //BenchmarkRunner.Run<AdoNetAppenderTest>(config);
+            BenchmarkRunner.Run<RollingFileAppenderTest>(config);
         }
     }
 }

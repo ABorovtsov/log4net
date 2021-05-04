@@ -6,16 +6,18 @@ namespace log4net.tools.benchmarks
 {
     public class RollingFileAppenderTest
     {
-        private readonly ILog _rollingFileLogger;
-        private readonly ILog _forwardingLogger;
         private readonly ILog _bufferingLogger;
-        
+        private readonly ILog _forwardingLogger;
+        private readonly ILog _forwardingWithMetricsLogger;
+        private readonly ILog _rollingFileLogger;
+
         public RollingFileAppenderTest()
         {
             Config.XmlConfigurator.Configure();
-            _rollingFileLogger = LogManager.GetLogger("RollingFileLogger");
-            _forwardingLogger = LogManager.GetLogger("Forwarding2RollingFileLogger");
             _bufferingLogger = LogManager.GetLogger("BufferingForwardingLogger");
+            _forwardingLogger = LogManager.GetLogger("Forwarding2RollingFileLogger");
+            _forwardingWithMetricsLogger = LogManager.GetLogger("ForwardingWithMetrics2RollingFileLogger");
+            _rollingFileLogger = LogManager.GetLogger("RollingFileLogger");
         }
 
         [Benchmark(Description = "Sequential Load")]
@@ -39,6 +41,7 @@ namespace log4net.tools.benchmarks
         {
             yield return new object[] { _rollingFileLogger, "Original" };
             yield return new object[] { _forwardingLogger, "Forwarding" };
+            yield return new object[] { _forwardingWithMetricsLogger, "ForwardingWithMetrics" };
             yield return new object[] { _bufferingLogger, "Buffering" };
         }
     }

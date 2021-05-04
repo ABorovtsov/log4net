@@ -20,13 +20,23 @@ namespace log4net.tools
 
         public new void Close()
         {
-            using (new LatencyMonitor(Buffer.Count, MetricsWriter))
+            int bufferLength = -1;
+
+            if (SwallowHelper.TryDo(() => bufferLength = Buffer.Count))
             {
-                base.Close();
+                using (new LatencyMonitor(bufferLength, MetricsWriter))
+                {
+                    base.Close();
+                }
             }
         }
 
         protected override void AppendLoopOnAppenders(LoggingEvent loggingEvent)
+        {
+            Dequeue(loggingEvent);
+        }
+
+        private void Dequeue(LoggingEvent loggingEvent)
         {
             using (new LatencyMonitor(Buffer.Count, MetricsWriter))
             {

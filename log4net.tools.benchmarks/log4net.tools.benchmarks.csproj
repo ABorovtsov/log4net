@@ -15,6 +15,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\log4net.tools.integration\log4net.tools.integration.csproj" />
     <ProjectReference Include="..\log4net.tools\log4net.tools.csproj" />
   </ItemGroup>
 
