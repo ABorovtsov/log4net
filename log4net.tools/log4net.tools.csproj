@@ -16,10 +16,9 @@
     <AssemblyVersion>1.3.0.0</AssemblyVersion>
     <PackageIcon>icon.png</PackageIcon>
     <FileVersion>1.3.0.0</FileVersion>
-    <PackageReleaseNotes>- introduce the experimental ForwardingAppenderAsyncWithMetrics.
-- update the error handling;
-- minor refactoring.
-</PackageReleaseNotes>
+    <PackageReleaseNotes>- introduce the ForwardingAppenderAsyncWithMetrics.
+- introduce the metrics csv writer.
+- update the error handling;</PackageReleaseNotes>
   </PropertyGroup>
 
   <ItemGroup>

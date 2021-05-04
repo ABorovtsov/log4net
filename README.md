@@ -57,6 +57,47 @@ The example of the advanced xml configuration:
 | AdoNetAppender           | 2,797.39 ms |
 | **Forwarded** AdoNetAppender |   4.62 ms |
 
+## [ForwardingAppenderAsyncWithMetrics](https://github.com/ABorovtsov/log4net/blob/main/log4net.tools/Metrics/ForwardingAppenderAsyncWithMetrics.cs)
+Grabs metrics: LatencyUs, BufferSize, AllocatedBytes in addition to the [ForwardingAppenderAsync](https://github.com/ABorovtsov/log4net/blob/main/log4net.tools/ForwardingAppenderAsync.cs) functionality. The default output is Trace Info.
+
+The example of the minimal xml configuration:
+```
+<appender name="Forwarding2RollingFileAppenderWithMetrics" type="log4net.tools.ForwardingAppenderAsyncWithMetrics, log4net.tools">
+    <appender-ref ref="RollingFileAppender" />
+</appender>
+```
+
+The example of the advanced xml configuration:
+```
+<appender name="Forwarding2RollingFileAppenderWithMetrics" type="log4net.tools.ForwardingAppenderAsyncWithMetrics, log4net.tools">
+    <MetricsWriter type="log4net.tools.integration.MetricsCsvWriter, log4net.tools.integration">
+        <CsvFilePath value="data.csv"/>
+    </MetricsWriter> 
+
+    <BufferSize value="1000"/>
+    <Fix value="260"/>
+    <BufferOverflowBehaviour value="RejectNew"/>
+    <BufferClosingType value="DumpToLog"/>
+
+    <appender-ref ref="DebugAppender" />
+    <appender-ref ref="RollingFileAppender" />
+    <appender-ref ref="AdoNetAppender" />
+</appender>
+```
+
+The example of the output:
+```csv
+DateTime,LatencyUs,BufferSize,CallerName,AllocatedBytes
+2021-05-04T11:49:22,2.00,76,DoAppend,5491168
+2021-05-04T11:49:22,2.80,77,DoAppend,5587296
+2021-05-04T11:49:22,318.80,77,Dequeue,5684840
+2021-05-04T11:49:22,2.40,77,DoAppend,1269424
+2021-05-04T11:49:22,2.50,78,DoAppend,1367776
+2021-05-04T11:49:22,2.00,79,DoAppend,1466128
+2021-05-04T11:49:22,2.30,80,DoAppend,1564480
+2021-05-04T11:49:22,1.50,81,DoAppend,1662832
+2021-05-04T11:49:22,273.80,81,Dequeue,1752992
+```
 
 ## [Log Analyzer](https://github.com/ABorovtsov/log4net/blob/main/log_analyzer/simple_log_parser.py)
 It's the python script which parses log4net logs and returns the stats related to the log levels and error messages.

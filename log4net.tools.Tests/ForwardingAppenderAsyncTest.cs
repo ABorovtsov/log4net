@@ -107,7 +107,7 @@ namespace log4net.tools.Tests
 
             var closingElapsedSec = CloseAppenderWithFilledBuffer();
             Assert.True(1 == _countingAppender.Counter, $"Count of loggingEvents processed: {_countingAppender.Counter}");
-            Assert.True(0 == closingElapsedSec, $"Duration in seconds when client was blocked: {closingElapsedSec}");
+            Assert.True(closingElapsedSec <= blockingTimeSec, $"Duration in seconds when client was blocked: {closingElapsedSec}");
 
             Thread.Sleep((BufferSize + 3) * blockingTimeSec * 1000); // wait for all the events are processed
             Assert.True(1 == _countingAppender.Counter, $"Final count of loggingEvents processed: {_countingAppender.Counter}");
@@ -126,7 +126,7 @@ namespace log4net.tools.Tests
 
             var closingElapsedSec = CloseAppenderWithFilledBuffer();
             Assert.True(1 == _countingAppender.Counter, $"Count of loggingEvents processed: {_countingAppender.Counter}");
-            Assert.True(0 == closingElapsedSec, $"Duration in seconds when client was blocked: {closingElapsedSec}");
+            Assert.True(closingElapsedSec <= blockingTimeSec, $"Duration in seconds when client was blocked: {closingElapsedSec}");
 
             // todo: check ErrorLogger output
             Thread.Sleep((BufferSize + 3) * blockingTimeSec * 1000); // wait for all the events are processed
