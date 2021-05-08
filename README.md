@@ -1,7 +1,15 @@
 # log4net tools
 
 ## [ForwardingAppenderAsync](https://github.com/ABorovtsov/log4net/blob/main/log4net.tools/ForwardingAppenderAsync.cs)
-Appender forwards LoggingEvents to a list of attached appenders asynchronously. It uses an internal queue and a worker task which dequeues items in background. The modes of handling the buffer overflow situation described [here](https://github.com/ABorovtsov/log4net/blob/main/log4net.tools/BufferOverflowBehaviour.cs).
+Appender forwards LoggingEvents to a list of attached appenders asynchronously. It uses an internal buffer and a worker task which dequeues items in background. 
+
+![Latency: Enqueue(Buffering) VS Dequeue (With The RollingFileAppender)](./img/metrics/enqueue_dequeue.png)
+
+The blue graph corresponds to the latency of the enqueue stage.
+
+The modes of handling the buffer overflow situation described [here](https://github.com/ABorovtsov/log4net/blob/main/log4net.tools/BufferOverflowBehaviour.cs).
+
+The modes of closing behavior described [here](https://github.com/ABorovtsov/log4net/blob/main/log4net.tools/BufferClosingType.cs).
 
 The example of the minimal xml configuration:
 ```
@@ -23,6 +31,8 @@ The example of the advanced xml configuration:
     <appender-ref ref="AdoNetAppender" />
 </appender>
 ```
+More examples of the xml configuration are available [here](https://github.com/ABorovtsov/log4net/blob/main/log4net.tools.benchmarks/App.config).
+
 ### [RollingFileAppender Benchmark](https://github.com/ABorovtsov/log4net/blob/main/log4net.tools.benchmarks/RollingFileAppenderTest.cs)
 
 #### 10K of sequential info-logs:
@@ -58,7 +68,7 @@ The example of the advanced xml configuration:
 | **Forwarded** AdoNetAppender |   4.62 ms |
 
 ## [ForwardingAppenderAsyncWithMetrics](https://github.com/ABorovtsov/log4net/blob/main/log4net.tools/Metrics/ForwardingAppenderAsyncWithMetrics.cs)
-Grabs metrics: LatencyUs, BufferSize, AllocatedBytes in addition to the [ForwardingAppenderAsync](https://github.com/ABorovtsov/log4net/blob/main/log4net.tools/ForwardingAppenderAsync.cs) functionality. The default output is Trace Info.
+The appender grabs the metrics: LatencyUs, BufferSize, AllocatedBytes in addition to the [ForwardingAppenderAsync](https://github.com/ABorovtsov/log4net/blob/main/log4net.tools/ForwardingAppenderAsync.cs) functionality. The default output is Trace Info.
 
 The example of the minimal xml configuration:
 ```
@@ -66,6 +76,7 @@ The example of the minimal xml configuration:
     <appender-ref ref="RollingFileAppender" />
 </appender>
 ```
+The example above uses "Trace" channel to output the metrics.
 
 The example of the advanced xml configuration:
 ```
@@ -84,7 +95,7 @@ The example of the advanced xml configuration:
     <appender-ref ref="AdoNetAppender" />
 </appender>
 ```
-MetricsCsvWriter is available in the log4net.tools.integration package.
+MetricsCsvWriter is available in the [log4net.tools.integration](https://www.nuget.org/packages/log4net.tools.integration) package.
 
 The example of the output:
 ```csv
