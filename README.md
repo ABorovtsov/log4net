@@ -3,22 +3,22 @@
 ## [ForwardingAppenderAsync](https://github.com/ABorovtsov/log4net/blob/main/log4net.tools/ForwardingAppenderAsync.cs)
 Appender forwards LoggingEvents to a list of attached appenders asynchronously. It uses an internal buffer and a worker task which dequeues items in background. 
 
-![Latency: Enqueue(Buffering) VS Dequeue (With The RollingFileAppender)](./img/metrics/enqueue_dequeue.png)
+![Latency: Enqueue(Buffering) VS Dequeue (With The RollingFileAppender)](https://raw.githubusercontent.com/ABorovtsov/log4net/main/img/metrics/enqueue_dequeue.png)
 
-The blue graph corresponds to the latency of the enqueue stage.
+Modes:
+- [handling the buffer overflow situation](https://github.com/ABorovtsov/log4net/blob/main/log4net.tools/BufferOverflowBehaviour.cs)
+- [closing behavior](https://github.com/ABorovtsov/log4net/blob/main/log4net.tools/BufferClosingType.cs)
 
-The modes of handling the buffer overflow situation described [here](https://github.com/ABorovtsov/log4net/blob/main/log4net.tools/BufferOverflowBehaviour.cs).
 
-The modes of closing behavior described [here](https://github.com/ABorovtsov/log4net/blob/main/log4net.tools/BufferClosingType.cs).
-
-The example of the minimal xml configuration:
+### XML Configuration
+The example of the minimal configuration:
 ```
 <appender name="ForwardingAppenderAsync" type="log4net.tools.ForwardingAppenderAsync">
     <appender-ref ref="RollingFileAppender" />
 </appender>
 ```
 
-The example of the advanced xml configuration:
+The example of the advanced configuration:
 ```
 <appender name="ForwardingAppenderAsync" type="log4net.tools.ForwardingAppenderAsync">
     <BufferSize value="1000"/>
@@ -110,6 +110,7 @@ DateTime,LatencyUs,BufferSize,CallerName,AllocatedBytes
 2021-05-04T11:49:22,1.50,81,DoAppend,1662832
 2021-05-04T11:49:22,273.80,81,Dequeue,1752992
 ```
+The python [notebook](https://github.com/ABorovtsov/log4net/blob/main/log_analyzer/appender_metrics.ipynb) to analyze the metrics.
 
 ## [Log Analyzer](https://github.com/ABorovtsov/log4net/blob/main/log_analyzer/simple_log_parser.py)
 It's the python script which parses log4net logs and returns the stats related to the log levels and error messages.
