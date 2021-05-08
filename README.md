@@ -1,7 +1,18 @@
 # About log4net Tools
+[<img align="right" width="100px" src="https://github.com/ABorovtsov/log4net/blob/main/img/icon.png?raw=true" />](https://github.com/ABorovtsov/log4net/blob/main/log4net.tools)
+
+The project was designed to supplement the log4net base functionality with often demanded structure blocks like appenders, log parsers and handlers.
+
+**Latest Builds**
+
+|||
+| --- | -------------- |
+| log4net.tools | <a href="https://www.nuget.org/packages/log4net.tools"><img src="https://img.shields.io/nuget/v/log4net.tools.svg?style=flat&logo=nuget"></a> |
+| log4net.tools.integration | <a href="https://www.nuget.org/packages/log4net.tools.integration"><img src="https://img.shields.io/nuget/v/log4net.tools.integration.svg?style=flat&logo=nuget"></a> |
+<br/>
 
 ## [ForwardingAppenderAsync](https://github.com/ABorovtsov/log4net/blob/main/log4net.tools/ForwardingAppenderAsync.cs)
-Appender forwards LoggingEvents to a list of attached appenders asynchronously. It uses an internal buffer and a worker task which dequeues items in background. The only place where a client app is waiting is the quick enqueue (buffering) stage.
+Appender forwards LoggingEvents to a list of attached appenders asynchronously. It uses an internal buffer and a worker task which dequeues items in background. Thus waiting needing for example to write a log in a database is delegated to the background thread and the only place where a client app is blocking is the stage of in-memory enqueuing.
 
 ![Latency: Enqueue(Buffering) VS Dequeue (With The RollingFileAppender)](https://raw.githubusercontent.com/ABorovtsov/log4net/main/img/metrics/enqueue_dequeue.png)
 
@@ -12,14 +23,6 @@ Modes:
 - [handling the buffer overflow situation](https://github.com/ABorovtsov/log4net/blob/main/log4net.tools/BufferOverflowBehaviour.cs)
 - [closing behavior](https://github.com/ABorovtsov/log4net/blob/main/log4net.tools/BufferClosingType.cs)
 
-<br/>
-
-### Latest Builds
-
-|     | Stable package |
-| --- | -------------- |
-| log4net.tools | <a href="https://www.nuget.org/packages/log4net.tools"><img src="https://img.shields.io/nuget/v/log4net.tools.svg?style=flat&logo=nuget"></a> |
-| log4net.tools.integration | <a href="https://www.nuget.org/packages/log4net.tools.integration"><img src="https://img.shields.io/nuget/v/log4net.tools.integration.svg?style=flat&logo=nuget"></a> |
 <br/>
 
 ### XML Configuration
