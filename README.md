@@ -1,4 +1,4 @@
-# log4net tools
+# About log4net Tools
 
 ## [ForwardingAppenderAsync](https://github.com/ABorovtsov/log4net/blob/main/log4net.tools/ForwardingAppenderAsync.cs)
 Appender forwards LoggingEvents to a list of attached appenders asynchronously. It uses an internal buffer and a worker task which dequeues items in background. The only place where a client app is waiting is the quick enqueue (buffering) stage.
@@ -12,6 +12,15 @@ Modes:
 - [handling the buffer overflow situation](https://github.com/ABorovtsov/log4net/blob/main/log4net.tools/BufferOverflowBehaviour.cs)
 - [closing behavior](https://github.com/ABorovtsov/log4net/blob/main/log4net.tools/BufferClosingType.cs)
 
+<br/>
+
+### Latest Builds
+
+|     | Stable package |
+| --- | -------------- |
+| log4net.tools | <a href="https://www.nuget.org/packages/log4net.tools"><img src="https://img.shields.io/nuget/v/log4net.tools.svg?style=flat&logo=nuget"></a> |
+| log4net.tools.integration | <a href="https://www.nuget.org/packages/log4net.tools.integration"><img src="https://img.shields.io/nuget/v/log4net.tools.integration.svg?style=flat&logo=nuget"></a> |
+<br/>
 
 ### XML Configuration
 The example of the minimal configuration:
