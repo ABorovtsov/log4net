@@ -1,9 +1,12 @@
 # log4net tools
 
 ## [ForwardingAppenderAsync](https://github.com/ABorovtsov/log4net/blob/main/log4net.tools/ForwardingAppenderAsync.cs)
-Appender forwards LoggingEvents to a list of attached appenders asynchronously. It uses an internal buffer and a worker task which dequeues items in background. 
+Appender forwards LoggingEvents to a list of attached appenders asynchronously. It uses an internal buffer and a worker task which dequeues items in background. The only place where a client app is waiting is the quick enqueue (buffering) stage.
 
 ![Latency: Enqueue(Buffering) VS Dequeue (With The RollingFileAppender)](https://raw.githubusercontent.com/ABorovtsov/log4net/main/img/metrics/enqueue_dequeue.png)
+
+The 'Dequeue' graph reflects the latency in microseconds by the RollingFileAppender which was attached to the ForwardingAppenderAsync plus some minor overheads on internal handling.
+
 
 Modes:
 - [handling the buffer overflow situation](https://github.com/ABorovtsov/log4net/blob/main/log4net.tools/BufferOverflowBehaviour.cs)
