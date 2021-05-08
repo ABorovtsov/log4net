@@ -10,14 +10,27 @@ namespace log4net.tools.integration
     {
         public string CsvFilePath { get; set; }
 
+        public int MaxRowCount { get; set; } = 1000000;
+
         private static readonly object Lock = new object(); //todo: use dict of locks instead
+        private int _rowCount;
 
         public void WriteLatency(LatencyWithContext latency)
         {
             if (latency == null) throw new ArgumentNullException(nameof(latency));
 
+            if (_rowCount >= MaxRowCount)
+            {
+                return;
+            }
+
             lock (Lock)
             {
+                if (_rowCount >= MaxRowCount)
+                {
+                    return;
+                }
+
                 using (var writer = new StreamWriter(CsvFilePath, true)) //todo: consider allocation in the ctor and dispose in the this.Dispose
                 using (var csv = new CsvWriter(writer, CultureInfo.InvariantCulture))
                 {
@@ -25,6 +38,8 @@ namespace log4net.tools.integration
                     csv.WriteRecord(latency);
                     csv.NextRecord();
                 }
+
+                _rowCount++;
             }
         }
 
@@ -35,17 +50,26 @@ namespace log4net.tools.integration
                 throw new ArgumentNullException(nameof(CsvFilePath));
             }
 
-            if (!File.Exists(CsvFilePath))
+            lock (Lock)
             {
-                lock (Lock)
+                if (!File.Exists(CsvFilePath))
                 {
-                    if (!File.Exists(CsvFilePath))
+                    using (var writer = new StreamWriter(CsvFilePath))
+                    using (var csv = new CsvWriter(writer, CultureInfo.InvariantCulture))
                     {
-                        using (var writer = new StreamWriter(CsvFilePath))
-                        using (var csv = new CsvWriter(writer, CultureInfo.InvariantCulture))
+                        csv.WriteHeader<LatencyWithContext>();
+                        csv.NextRecord();
+                    }
+                    
+                    _rowCount = 1;
+                }
+                else
+                {
+                    using (StreamReader file = new StreamReader(CsvFilePath))
+                    {
+                        while (file.ReadLine() != null)
                         {
-                            csv. WriteHeader<LatencyWithContext>();
-                            csv.NextRecord();
+                            _rowCount++;
                         }
                     }
                 }

@@ -9,13 +9,13 @@
     <PackageTags>log4net integration csv</PackageTags>
     <PackageProjectUrl>https://github.com/ABorovtsov/log4net</PackageProjectUrl>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
-    <Description>Tools for log4net users:
+    <Description>Tools for log4net:
 - MetricsCsvWriter writes logging metrics in a csv file.</Description>
     <RepositoryType>git</RepositoryType>
-    <Version>1.0.0</Version>
-    <AssemblyVersion>1.0.0.0</AssemblyVersion>
-    <FileVersion>1.0.0.0</FileVersion>
-    <PackageReleaseNotes>- introduce the metrics csv writer.</PackageReleaseNotes>
+    <Version>1.0.1</Version>
+    <AssemblyVersion>1.0.1.0</AssemblyVersion>
+    <FileVersion>1.0.1.0</FileVersion>
+    <PackageReleaseNotes>- limit output csv length</PackageReleaseNotes>
     <PackageIcon>icon.png</PackageIcon>
   </PropertyGroup>
 

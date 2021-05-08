@@ -9,7 +9,7 @@
     <PackageTags>log4net async logging forwarding</PackageTags>
     <PackageProjectUrl>https://github.com/ABorovtsov/log4net</PackageProjectUrl>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
-    <Description>Tools for log4net users: 
+    <Description>Tools for log4net: 
 - ForwardingAppenderAsync forwards LoggingEvents to a list of attached appenders asynchronously;
 - ForwardingAppenderAsyncWithMetrics do the same as ForwardingAppenderAsync but with metrics.</Description>
     <RepositoryType>git</RepositoryType>
