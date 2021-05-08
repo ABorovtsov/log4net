@@ -6,7 +6,7 @@
     <Copyright>Alexander Borovtsov</Copyright>
     <RepositoryUrl>https://github.com/ABorovtsov/log4net</RepositoryUrl>
     <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
-    <PackageTags>log4net async logging forwarding</PackageTags>
+    <PackageTags>log4net async appender</PackageTags>
     <PackageProjectUrl>https://github.com/ABorovtsov/log4net</PackageProjectUrl>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <Description>Tools for log4net: 
