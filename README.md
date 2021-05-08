@@ -3,12 +3,10 @@
 
 The project was designed to supplement the log4net base functionality with often demanded structure blocks like appenders, log parsers and handlers.
 
-**Latest Builds**
+**Latest Builds**:
 
-|||
-| --- | -------------- |
-| log4net.tools | <a href="https://www.nuget.org/packages/log4net.tools"><img src="https://img.shields.io/nuget/v/log4net.tools.svg?style=flat&logo=nuget"></a> |
-| log4net.tools.integration | <a href="https://www.nuget.org/packages/log4net.tools.integration"><img src="https://img.shields.io/nuget/v/log4net.tools.integration.svg?style=flat&logo=nuget"></a> |
+- log4net.tools <a href="https://www.nuget.org/packages/log4net.tools"><img src="https://img.shields.io/nuget/v/log4net.tools.svg?style=flat&logo=nuget"></a> 
+- log4net.tools.integration <a href="https://www.nuget.org/packages/log4net.tools.integration"><img src="https://img.shields.io/nuget/v/log4net.tools.integration.svg?style=flat&logo=nuget"></a> 
 <br/>
 
 ## [ForwardingAppenderAsync](https://github.com/ABorovtsov/log4net/blob/main/log4net.tools/ForwardingAppenderAsync.cs)
