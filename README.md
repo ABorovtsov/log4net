@@ -11,14 +11,18 @@ The project was designed to supplement the log4net base functionality with often
 
 ## [ForwardingAppenderAsync](https://github.com/ABorovtsov/log4net/blob/main/log4net.tools/ForwardingAppenderAsync.cs)
 
-The appender wrapps any log4net appender putting the async buffer in front. The independent background worker is responsible for dequeuing of items from the buffer without blocking a client app. Thus waiting needing before for example to write a log in a database is delegated now and the only place where the client app is blocking is the stage of the in-memory enqueuing.
+The appender wrapps any log4net appender putting the async buffer in front. The independent background worker is responsible for dequeuing of items from the buffer without blocking a client app. 
+
+![Functional blocks](https://raw.githubusercontent.com/ABorovtsov/log4net/main/img/ForwardingAppenderAsync.png)
+
+Thus waiting needing before for example to write a log in a database is delegated now and the only place where the client app is blocking is the stage of the in-memory enqueuing.
 
 [<img width="480px" src="https://raw.githubusercontent.com/ABorovtsov/log4net/main/img/metrics/enqueue_dequeue.png" />](https://github.com/ABorovtsov/log4net/blob/main/log_analyzer/appender_metrics.ipynb)
 
-The 'Dequeue' graph reflects the latency in microseconds of the RollingFileAppender (taken just as example) which works under the hood as a standard synchronous appender from the base library. A consumer is blocked only 'Enqueue' microseconds when ForwardingAppenderAsync is used.
+The 'Dequeue' graph reflects the latency in microseconds of the RollingFileAppender (taken just as example) which works under the hood as the attached synchronous appender. A consumer is blocked only during the 'Enqueue' microseconds.
 <br/>
 
-The aproach allows:
+The approach allows:
 - to get the minimal blocking of the client app;
 - to turn any 'old' synchronous appender into the 'async' version easily without additional coding or recompile;
 - to eliminate concurrent waits on the [internal lock section](https://git-wip-us.apache.org/repos/asf?p=logging-log4net.git;a=blob;f=src/log4net/Appender/AppenderSkeleton.cs;h=44b68c7555944ddcc2e862901ce8513ce0bff10f;hb=refs/heads/master#l297) as the background worker is singlethreaded;
