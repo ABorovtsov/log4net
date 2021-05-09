@@ -13,7 +13,7 @@ The project was designed to supplement the log4net base functionality with often
 
 The appender wrapps any log4net appender putting the async buffer in front. The independent background worker is responsible for dequeuing of items from the buffer without blocking a client app. 
 
-![Functional blocks](https://raw.githubusercontent.com/ABorovtsov/log4net/main/img/ForwardingAppenderAsync.png)
+![Functional blocks](https://raw.githubusercontent.com/ABorovtsov/log4net/main/img/ForwardingAppenderAsync.png?raw=true)
 
 Thus waiting needing before for example to write a log in a database is delegated now and the only place where the client app is blocking is the stage of the in-memory enqueuing.
 
