@@ -93,6 +93,20 @@ namespace log4net.tools
 
         public void ActivateOptions()
         {
+            if (WorkerPoolSize < 1)
+            {
+                var message = $"{WorkerPoolSize} must be more or equal to 1";
+                ErrorLogger.Error(message);
+                throw new InvalidOperationException(message);
+            }
+
+            if (BufferSize < 0)
+            {
+                var message = $"{BufferSize} must be more or equal to 0";
+                ErrorLogger.Error(message);
+                throw new InvalidOperationException(message);
+            }
+
             Buffer = BufferSize > 0
                 ? new BlockingCollection<LoggingEvent>(BufferSize) // call to Add may block until space is available to store the provided item (https://docs.microsoft.com/en-us/dotnet/api/system.collections.concurrent.blockingcollection-1.add?view=net-5.0#System_Collections_Concurrent_BlockingCollection_1_Add__0_)
                 : new BlockingCollection<LoggingEvent>();

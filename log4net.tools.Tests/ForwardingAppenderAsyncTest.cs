@@ -1,4 +1,5 @@
-﻿using System.Diagnostics;
+﻿using System;
+using System.Diagnostics;
 using System.Threading;
 using log4net.Config;
 using log4net.Core;
@@ -11,11 +12,12 @@ namespace log4net.tools.Tests
     {
         private const int BlockingTimeSec = 3;
         private const int BufferSize = 3;
+
         private ForwardingAppenderAsync _forwardingAppender;
         private CountingAppender _countingAppender;
         private Repository.Hierarchy.Hierarchy _hierarchy;
 
-        private void SetupRepository(int bufferSize = 0, byte poolSize = 3)
+        private void SetupRepository(int bufferSize = 0, byte poolSize = 1)
         {
             _hierarchy = new Repository.Hierarchy.Hierarchy();
 
@@ -31,10 +33,14 @@ namespace log4net.tools.Tests
             BasicConfigurator.Configure(_hierarchy, _forwardingAppender);
         }
 
-        [Fact]
-        public void Append_Warn_Success()
+        [Theory]
+        [InlineData(0, 1)]
+        [InlineData(100, 10)]
+        [InlineData(0, 10)]
+        [InlineData(100, 1)]
+        public void Append_Warn_Success(int bufferSize, byte poolSize)
         {
-            SetupRepository();
+            SetupRepository(bufferSize, poolSize);
 
             Assert.Equal(0, _countingAppender.Counter);
 
@@ -44,10 +50,23 @@ namespace log4net.tools.Tests
             Assert.Equal(1, _countingAppender.Counter);
         }
 
-        [Fact]
-        public void Append_BufferOverflowWait_Blocked()
+        [Theory]
+        [InlineData(100, 0)]
+        [InlineData(-100, 1)]
+        [InlineData(-100, 0)]
+        [InlineData(0, 0)]
+        public void Append_InvalidParameters_Error(int bufferSize, byte poolSize)
         {
-            SetupRepository(BufferSize);
+            Assert.Throws<InvalidOperationException>(() => SetupRepository(bufferSize, poolSize));
+        }
+
+
+        [Theory]
+        [InlineData(3, 10)]
+        [InlineData(3, 1)]
+        public void Append_BufferOverflowWait_Blocked(int bufferSize, byte poolSize)
+        {
+            SetupRepository(bufferSize, poolSize);
             var blockingAppender = new BlockingAppender(BlockingTimeSec);
             _forwardingAppender.AddAppender(blockingAppender);
             _forwardingAppender.BufferOverflowBehaviour = BufferOverflowBehaviour.Wait;
@@ -57,8 +76,8 @@ namespace log4net.tools.Tests
             Assert.True(2 == _countingAppender.Counter, $"Count of loggingEvents processed: {_countingAppender.Counter}");
             Assert.True(BlockingTimeSec == lastLogElapsedSec, $"Duration in seconds when client was blocked: {lastLogElapsedSec}");
 
-            Thread.Sleep((BufferSize + 3) * BlockingTimeSec * 1000); // wait for all the events are processed
-            Assert.True(BufferSize + 2 == _countingAppender.Counter, $"Final count of loggingEvents processed: {_countingAppender.Counter}");
+            Thread.Sleep((bufferSize + 3) * BlockingTimeSec * 1000); // wait for all the events are processed
+            Assert.True(bufferSize + 2 == _countingAppender.Counter, $"Final count of loggingEvents processed: {_countingAppender.Counter}");
         }
 
         [Fact]

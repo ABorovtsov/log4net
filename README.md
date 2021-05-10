@@ -25,7 +25,7 @@ The 'Dequeue' graph reflects the latency in microseconds of the RollingFileAppen
 The approach allows:
 - to get the minimal blocking of the client app;
 - to turn any 'old' synchronous appender into the 'async' version easily without additional coding or recompile;
-- to eliminate concurrent waits on the [internal lock section](https://git-wip-us.apache.org/repos/asf?p=logging-log4net.git;a=blob;f=src/log4net/Appender/AppenderSkeleton.cs;h=44b68c7555944ddcc2e862901ce8513ce0bff10f;hb=refs/heads/master#l297) as the background worker is singlethreaded;
+- to eliminate concurrent waits on the [internal lock section](https://git-wip-us.apache.org/repos/asf?p=logging-log4net.git;a=blob;f=src/log4net/Appender/AppenderSkeleton.cs;h=44b68c7555944ddcc2e862901ce8513ce0bff10f;hb=refs/heads/master#l297) as the background worker is singlethreaded if no pooling is used;
 - to build aggregations over the buffer. For example, to drop log duplicates or generate stats on the fly.
 <br/>
 
@@ -49,6 +49,7 @@ The example of the advanced configuration:
     <Fix value="260"/>
     <BufferOverflowBehaviour value="RejectNew"/>
     <BufferClosingType value="DumpToLog"/>
+    <WorkerPoolSize value="5"/>
 
     <appender-ref ref="DebugAppender" />
     <appender-ref ref="RollingFileAppender" />
@@ -97,14 +98,13 @@ The worker pool allows to improve throughput between the buffer and the attached
 For example, the test with the RollingFileAppender shows the difference in intencity of 'dequeue' events:
 ![1vs5_workers_rps](https://github.com/ABorovtsov/log4net/blob/main/img/metrics/1vs5_workers_rps.png?raw=true)
 
-The latency is on the same level. We observe that more workers generate more dots in the stats.
+The latency is on the same level. The latency is on the same level. We observe that more workers generate the denser 'Dequeue' graph.
 ![1vs5_workers_latency](https://github.com/ABorovtsov/log4net/blob/main/img/metrics/1vs5_workers_latency.png?raw=true)
 
-The latency is on the same level. We observe that more workers generate more dots in the stats.
-![1vs5_workers_latency](https://github.com/ABorovtsov/log4net/blob/main/img/metrics/1vs5_workers_latency.png?raw=true)
-
-The buffer size growth goes not as steep as with the single threaded configuration as workers more productive in processing of the benchmark stress load.
+The buffer size grows not as steep as with the single threaded configuration as several workers together are more productive in processing of the benchmark stress load.
 ![1vs5_workers_buffer](https://github.com/ABorovtsov/log4net/blob/main/img/metrics/1vs5_workers_buffer.png?raw=true)
+
+The 'WorkerPoolSize' configuration property defines the level of parallelism. The default value is '1' which corresponds to the 'single worker' scenario.
 
 ## [ForwardingAppenderAsyncWithMetrics](https://github.com/ABorovtsov/log4net/blob/main/log4net.tools/Metrics/ForwardingAppenderAsyncWithMetrics.cs)
 The appender grabs the metrics: LatencyUs, BufferSize, AllocatedBytes in addition to the [ForwardingAppenderAsync](https://github.com/ABorovtsov/log4net/blob/main/log4net.tools/ForwardingAppenderAsync.cs) functionality. The default output is Trace Info. Metrics bring some additional load so it is recommended to use the ForwardingAppenderAsync in scenarios where the minimum latency is required.
@@ -129,6 +129,7 @@ The example of the advanced xml configuration:
     <Fix value="260"/>
     <BufferOverflowBehaviour value="RejectNew"/>
     <BufferClosingType value="DumpToLog"/>
+    <WorkerPoolSize value="5"/>
 
     <appender-ref ref="DebugAppender" />
     <appender-ref ref="RollingFileAppender" />
