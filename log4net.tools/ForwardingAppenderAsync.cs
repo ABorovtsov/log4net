@@ -18,13 +18,14 @@ namespace log4net.tools
         public string Name { get; set; }
         public BufferOverflowBehaviour BufferOverflowBehaviour { get; set; } = BufferOverflowBehaviour.DirectForwarding;
         public BufferClosingType BufferClosingType { get; set; } = BufferClosingType.Immediate;
+        public byte WorkerPoolSize { get; set; } = 1;
 
         protected BlockingCollection<LoggingEvent> Buffer;
 
         private static readonly IErrorLogger ErrorLogger = new ErrorTracer();
 
         private readonly CancellationTokenSource _cancellation = new CancellationTokenSource();
-        private Task _worker;
+        private List<Task> _workerPool = new List<Task>();
 
         public ForwardingAppenderAsync() : base(ErrorLogger)
         { }
@@ -77,9 +78,12 @@ namespace log4net.tools
 
         public new void Dispose()
         {
-            if (_worker?.IsCanceled == true || _worker?.IsFaulted == true || _worker?.IsCompleted == true)
+            foreach (var worker in _workerPool)
             {
-                SwallowHelper.TryDo(() => _worker?.Dispose(), ErrorLogger);
+                if (worker?.IsCanceled == true || worker?.IsFaulted == true || worker?.IsCompleted == true)
+                {
+                    SwallowHelper.TryDo(() => worker?.Dispose(), ErrorLogger);
+                }
             }
 
             SwallowHelper.TryDo(() => Buffer?.Dispose(), ErrorLogger);
@@ -94,11 +98,16 @@ namespace log4net.tools
                 : new BlockingCollection<LoggingEvent>();
 
             var cancellationToken = _cancellation.Token;
-            _worker = Task.Factory
-                .StartNew(() => Append(Buffer.GetConsumingEnumerable(cancellationToken), cancellationToken),
-                    cancellationToken,
-                    TaskCreationOptions.LongRunning,
-                    TaskScheduler.Current);
+            var loggingEvents = Buffer.GetConsumingEnumerable(cancellationToken);
+
+            for (int i = 0; i < WorkerPoolSize; i++)
+            {
+                _workerPool.Add(Task.Factory
+                    .StartNew(() => Append(loggingEvents, cancellationToken),
+                        cancellationToken,
+                        TaskCreationOptions.LongRunning,
+                        TaskScheduler.Current));
+            }
         }
 
         private void CloseBuffer()

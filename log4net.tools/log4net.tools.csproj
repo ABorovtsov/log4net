@@ -6,19 +6,18 @@
     <Copyright>Alexander Borovtsov</Copyright>
     <RepositoryUrl>https://github.com/ABorovtsov/log4net</RepositoryUrl>
     <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
-    <PackageTags>log4net async appender</PackageTags>
+    <PackageTags>log4net async appender forwarder</PackageTags>
     <PackageProjectUrl>https://github.com/ABorovtsov/log4net</PackageProjectUrl>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
-    <Description>Tools for log4net: 
+    <Description>log4net async appenders: 
 - ForwardingAppenderAsync forwards LoggingEvents to a list of attached appenders asynchronously;
 - ForwardingAppenderAsyncWithMetrics do the same as ForwardingAppenderAsync but with metrics.</Description>
     <RepositoryType>git</RepositoryType>
-    <Version>1.3.0</Version>
-    <AssemblyVersion>1.3.0.0</AssemblyVersion>
+    <Version>1.4.0</Version>
+    <AssemblyVersion>1.4.0.0</AssemblyVersion>
     <PackageIcon>icon.png</PackageIcon>
-    <FileVersion>1.3.0.0</FileVersion>
-    <PackageReleaseNotes>- introduce the ForwardingAppenderAsyncWithMetrics;
-- update the error handling.</PackageReleaseNotes>
+    <FileVersion>1.4.0.0</FileVersion>
+    <PackageReleaseNotes>- introduce the pool of workers.</PackageReleaseNotes>
   </PropertyGroup>
 
   <ItemGroup>

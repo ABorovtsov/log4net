@@ -15,14 +15,15 @@ namespace log4net.tools.Tests
         private CountingAppender _countingAppender;
         private Repository.Hierarchy.Hierarchy _hierarchy;
 
-        private void SetupRepository(int bufferSize = 0)
+        private void SetupRepository(int bufferSize = 0, byte poolSize = 3)
         {
             _hierarchy = new Repository.Hierarchy.Hierarchy();
 
             _countingAppender = new CountingAppender();
             _forwardingAppender = new ForwardingAppenderAsync 
             {
-                BufferSize = bufferSize
+                BufferSize = bufferSize,
+                WorkerPoolSize = poolSize
             };
             _forwardingAppender.ActivateOptions();
             _forwardingAppender.AddAppender(_countingAppender);
