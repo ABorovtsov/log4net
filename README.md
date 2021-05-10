@@ -91,6 +91,21 @@ More examples of the xml configuration are available [here](https://github.com/A
 | AdoNetAppender           | 2,797.39 ms |
 | **Forwarded** AdoNetAppender |   4.62 ms |
 
+### Worker Pool
+The worker pool allows to improve throughput between the buffer and the attached appenders as it allows to dequeue the cached logs in parallel.
+
+For example, the test with the RollingFileAppender shows the difference in intencity of 'dequeue' events:
+![1vs5_workers_rps](https://github.com/ABorovtsov/log4net/blob/main/img/metrics/1vs5_workers_rps.png?raw=true)
+
+The latency is on the same level. We observe that more workers generate more dots in the stats.
+![1vs5_workers_latency](https://github.com/ABorovtsov/log4net/blob/main/img/metrics/1vs5_workers_latency.png?raw=true)
+
+The latency is on the same level. We observe that more workers generate more dots in the stats.
+![1vs5_workers_latency](https://github.com/ABorovtsov/log4net/blob/main/img/metrics/1vs5_workers_latency.png?raw=true)
+
+The buffer size growth goes not as steep as with the single threaded configuration as workers more productive in processing of the benchmark stress load.
+![1vs5_workers_buffer](https://github.com/ABorovtsov/log4net/blob/main/img/metrics/1vs5_workers_buffer.png?raw=true)
+
 ## [ForwardingAppenderAsyncWithMetrics](https://github.com/ABorovtsov/log4net/blob/main/log4net.tools/Metrics/ForwardingAppenderAsyncWithMetrics.cs)
 The appender grabs the metrics: LatencyUs, BufferSize, AllocatedBytes in addition to the [ForwardingAppenderAsync](https://github.com/ABorovtsov/log4net/blob/main/log4net.tools/ForwardingAppenderAsync.cs) functionality. The default output is Trace Info. Metrics bring some additional load so it is recommended to use the ForwardingAppenderAsync in scenarios where the minimum latency is required.
 
