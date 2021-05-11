@@ -11,13 +11,13 @@ The project was designed to supplement the log4net base functionality with often
 
 ## [ForwardingAppenderAsync](https://github.com/ABorovtsov/log4net/blob/main/log4net.tools/ForwardingAppenderAsync.cs)
 
-The appender wrapps any log4net appender putting the async buffer in front. The independent background worker is responsible for dequeuing of items from the buffer without blocking a client app. 
+The [ForwardingAppenderAsync](https://github.com/ABorovtsov/log4net/blob/main/log4net.tools/ForwardingAppenderAsync.cs) wrapps any log4net appender putting the async buffer in front. The independent background worker is responsible for dequeuing of items from the buffer without blocking a client app. 
 
 ![Functional blocks](https://raw.githubusercontent.com/ABorovtsov/log4net/main/img/ForwardingAppenderAsync.png?raw=true)
 
 Thus waiting needing before for example to write a log in a database is delegated now and the only place where the client app is blocking is the stage of the in-memory enqueuing.
 
-[<img width="480px" src="https://raw.githubusercontent.com/ABorovtsov/log4net/main/img/metrics/enqueue_dequeue.png" />](https://github.com/ABorovtsov/log4net/blob/main/log_analyzer/appender_metrics.ipynb)
+![latency](https://raw.githubusercontent.com/ABorovtsov/log4net/main/img/metrics/enqueue_dequeue.png)
 
 The 'Dequeue' graph reflects the latency in microseconds of the RollingFileAppender (taken just as example) which works under the hood as the attached synchronous appender. A consumer is blocked only during the 'Enqueue' microseconds.
 <br/>
@@ -96,13 +96,13 @@ More examples of the xml configuration are available [here](https://github.com/A
 The worker pool allows to improve throughput between the buffer and the attached appenders as it allows to dequeue the cached logs in parallel.
 
 For example, the test with the RollingFileAppender shows the difference in intencity of 'dequeue' events:
-![1vs5_workers_rps](https://github.com/ABorovtsov/log4net/blob/main/img/metrics/1vs5_workers_rps.png?raw=true)
+![1vs5_workers_rps](https://raw.githubusercontent.com/ABorovtsov/log4net/main/img/metrics/1vs5_workers_rps.png)
 
 The latency is on the same level. We observe that more workers generate the denser 'Dequeue' graph.
-![1vs5_workers_latency](https://github.com/ABorovtsov/log4net/blob/main/img/metrics/1vs5_workers_latency.png?raw=true)
+![1vs5_workers_latency](https://raw.githubusercontent.com/ABorovtsov/log4net/main/img/metrics/1vs5_workers_latency.png)
 
 The buffer size grows not as steep as with the single threaded configuration as several workers together are more productive in processing of the benchmark stress load.
-![1vs5_workers_buffer](https://github.com/ABorovtsov/log4net/blob/main/img/metrics/1vs5_workers_buffer.png?raw=true)
+![1vs5_workers_buffer](https://raw.githubusercontent.com/ABorovtsov/log4net/main/img/metrics/1vs5_workers_buffer.png)
 
 The 'WorkerPoolSize' configuration property defines the level of parallelism. The default value is '1' which corresponds to the 'single worker' scenario.
 

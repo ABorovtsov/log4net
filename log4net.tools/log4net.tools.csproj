@@ -9,15 +9,16 @@
     <PackageTags>log4net async appender forwarder</PackageTags>
     <PackageProjectUrl>https://github.com/ABorovtsov/log4net</PackageProjectUrl>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
-    <Description>log4net async appenders: 
-- ForwardingAppenderAsync forwards LoggingEvents to a list of attached appenders asynchronously;
+    <Description>The package contains these async appenders: 
+- ForwardingAppenderAsync which forwards LoggingEvents to a list of attached appenders asynchronously;
 - ForwardingAppenderAsyncWithMetrics do the same as ForwardingAppenderAsync but with metrics.</Description>
     <RepositoryType>git</RepositoryType>
     <Version>1.4.0</Version>
     <AssemblyVersion>1.4.0.0</AssemblyVersion>
     <PackageIcon>icon.png</PackageIcon>
     <FileVersion>1.4.0.0</FileVersion>
-    <PackageReleaseNotes>- introduce the pool of workers.</PackageReleaseNotes>
+    <PackageReleaseNotes>- introduce the pool of workers;
+- improve the buffer overflow handling.</PackageReleaseNotes>
   </PropertyGroup>
 
   <ItemGroup>

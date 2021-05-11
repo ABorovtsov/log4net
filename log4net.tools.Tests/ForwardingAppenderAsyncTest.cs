@@ -79,7 +79,7 @@ namespace log4net.tools.Tests
 
             Assert.Equal(0, _countingAppender.Counter);
             var lastLogElapsedSec = OverflowBuffer();
-            Assert.True(poolSize == _countingAppender.Counter || poolSize + 1 == _countingAppender.Counter, $"Count of loggingEvents processed: {_countingAppender.Counter}");
+            Assert.True(poolSize + 1 == _countingAppender.Counter || poolSize + 2 == _countingAppender.Counter, $"Count of loggingEvents processed: {_countingAppender.Counter}");
             Assert.True(BlockingTimeSec == lastLogElapsedSec, $"Duration in seconds when client was blocked: {lastLogElapsedSec}");
 
             Thread.Sleep((bufferSize + 3) * BlockingTimeSec * 1000); // wait for all the events are processed
@@ -234,7 +234,7 @@ namespace log4net.tools.Tests
                 }
             }
 
-            return (int)stopWatch.Elapsed.TotalSeconds;
+            return (int)Math.Round(stopWatch.Elapsed.TotalSeconds);
         }
 
         [Fact]
