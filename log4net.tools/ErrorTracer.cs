@@ -1,4 +1,5 @@
-﻿using System.Diagnostics;
+﻿using System;
+using System.Diagnostics;
 
 namespace log4net.tools
 {
@@ -8,7 +9,8 @@ namespace log4net.tools
         {
             if (message != null)
             {
-                Trace.TraceError($"{nameof(ErrorTracer)}: Error - {message}");
+                var time = DateTime.Now.ToString("hh:mm:ss.f");
+                Trace.TraceError($"{time} {nameof(ErrorTracer)}: Error - {message}");
             }
         }
     }

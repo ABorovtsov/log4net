@@ -4,15 +4,20 @@ using log4net.Core;
 
 namespace log4net.tools.Tests
 {
-    public class CountingAppender : AppenderSkeleton
+    public class CountingAppender : IAppender
     {
-        private int _counter;
+        public string Name { get; set; }
 
         public int Counter => _counter;
 
-        protected override void Append(LoggingEvent logEvent)
+        private int _counter;
+
+        public void DoAppend(LoggingEvent loggingEvent)
         {
             Interlocked.Increment(ref _counter);
         }
+
+        public void Close()
+        {}
     }
 }

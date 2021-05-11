@@ -98,7 +98,7 @@ The worker pool allows to improve throughput between the buffer and the attached
 For example, the test with the RollingFileAppender shows the difference in intencity of 'dequeue' events:
 ![1vs5_workers_rps](https://github.com/ABorovtsov/log4net/blob/main/img/metrics/1vs5_workers_rps.png?raw=true)
 
-The latency is on the same level. The latency is on the same level. We observe that more workers generate the denser 'Dequeue' graph.
+The latency is on the same level. We observe that more workers generate the denser 'Dequeue' graph.
 ![1vs5_workers_latency](https://github.com/ABorovtsov/log4net/blob/main/img/metrics/1vs5_workers_latency.png?raw=true)
 
 The buffer size grows not as steep as with the single threaded configuration as several workers together are more productive in processing of the benchmark stress load.

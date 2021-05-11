@@ -8,7 +8,7 @@ namespace log4net.tools
         {
             var data = new
             {
-                latency.DateTime,
+                DateTime = latency.DateTime.ToString("hh:mm:ss.f"),
                 LatencyUs = latency.LatencyUs.ToString("F1"),
                 latency.BufferSize,
                 latency.CallerName,

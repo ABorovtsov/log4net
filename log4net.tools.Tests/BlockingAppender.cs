@@ -5,10 +5,12 @@ using log4net.Core;
 
 namespace log4net.tools.Tests
 {
-    public class BlockingAppender : AppenderSkeleton
+    public class BlockingAppender : IAppender
     {
-        private readonly byte _blockingTimeSec;
+        public string Name { get; set; }
 
+        private readonly byte _blockingTimeSec;
+        
         public BlockingAppender(byte blockingTimeSec)
         {
             if (blockingTimeSec <= 0)
@@ -19,9 +21,12 @@ namespace log4net.tools.Tests
             _blockingTimeSec = blockingTimeSec;
         }
 
-        protected override void Append(LoggingEvent logEvent)
+        public void DoAppend(LoggingEvent loggingEvent)
         {
             Thread.Sleep(_blockingTimeSec * 1000);
         }
+
+        public void Close()
+        {}
     }
 }

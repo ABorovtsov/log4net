@@ -20,6 +20,8 @@ namespace log4net.tools
         public BufferClosingType BufferClosingType { get; set; } = BufferClosingType.Immediate;
         public byte WorkerPoolSize { get; set; } = 1;
 
+        public event EventHandler BufferOverflowEvent;
+
         protected BlockingCollection<LoggingEvent> Buffer;
 
         private static readonly IErrorLogger ErrorLogger = new ErrorTracer();
@@ -57,6 +59,12 @@ namespace log4net.tools
             {
                 ErrorLogger.Error(ex.ToString());
             }
+        }
+
+        public void OnBufferOverflow(EventArgs e)
+        {
+            EventHandler handler = BufferOverflowEvent;
+            handler?.Invoke(this, e);
         }
 
         public void Close()
@@ -151,27 +159,38 @@ namespace log4net.tools
 
         private void DoAppendBoundedBuffer(LoggingEvent loggingEvent)
         {
-            var errorMessage = "Cannot add the loggingEvent in to the buffer";
+            var bufferLength = 0;
 
+
+            if (Buffer.TryAdd(loggingEvent))
+            {
+                return;
+            }
+            else
+            {
+                bufferLength = Buffer.Count; // races are possible
+            }
+
+            ErrorLogger.Error("Cannot add the loggingEvent in to the buffer");
+
+            if (bufferLength < BufferSize)
+            {
+                return;
+            }
+
+            OnBufferOverflow(EventArgs.Empty);
+            ErrorLogger.Error("The buffer is overflown");
+            
             switch (BufferOverflowBehaviour)
             {
                 case BufferOverflowBehaviour.RejectNew:
-                    if (!Buffer.TryAdd(loggingEvent))
-                    {
-                        ErrorLogger.Error(errorMessage);
-                    }
-
+                    ErrorLogger.Error("The loggingEvent is lost");
                     break;
                 case BufferOverflowBehaviour.Wait:
                     Buffer.Add(loggingEvent);
                     break;
                 case BufferOverflowBehaviour.DirectForwarding:
-                    if (!Buffer.TryAdd(loggingEvent))
-                    {
-                        ErrorLogger.Error(errorMessage + " The direct forwarding is used");
-                        AppendLoopOnAppenders(loggingEvent);
-                    }
-
+                    AppendLoopOnAppenders(loggingEvent);
                     break;
                 default:
                     throw new ArgumentOutOfRangeException();

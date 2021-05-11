@@ -12,25 +12,31 @@ namespace log4net.tools.Tests
     {
         private const int BlockingTimeSec = 3;
         private const int BufferSize = 3;
+        private const int MaxLogToOwerflowBuffer = 1000;
 
         private ForwardingAppenderAsync _forwardingAppender;
         private CountingAppender _countingAppender;
         private Repository.Hierarchy.Hierarchy _hierarchy;
+        private CancellationTokenSource cancellationTokenSource = new CancellationTokenSource();
+        CancellationToken _cancelationToken;
 
         private void SetupRepository(int bufferSize = 0, byte poolSize = 1)
         {
             _hierarchy = new Repository.Hierarchy.Hierarchy();
 
             _countingAppender = new CountingAppender();
-            _forwardingAppender = new ForwardingAppenderAsync 
+            _forwardingAppender = new ForwardingAppenderAsyncWithMetrics()
             {
                 BufferSize = bufferSize,
                 WorkerPoolSize = poolSize
             };
+            
+            _forwardingAppender.BufferOverflowEvent += OnBufferOverflowEvent;
             _forwardingAppender.ActivateOptions();
             _forwardingAppender.AddAppender(_countingAppender);
 
             BasicConfigurator.Configure(_hierarchy, _forwardingAppender);
+            _cancelationToken = cancellationTokenSource.Token;
         }
 
         [Theory]
@@ -73,51 +79,66 @@ namespace log4net.tools.Tests
 
             Assert.Equal(0, _countingAppender.Counter);
             var lastLogElapsedSec = OverflowBuffer();
-            Assert.True(2 == _countingAppender.Counter, $"Count of loggingEvents processed: {_countingAppender.Counter}");
+            Assert.True(poolSize == _countingAppender.Counter || poolSize + 1 == _countingAppender.Counter, $"Count of loggingEvents processed: {_countingAppender.Counter}");
             Assert.True(BlockingTimeSec == lastLogElapsedSec, $"Duration in seconds when client was blocked: {lastLogElapsedSec}");
 
             Thread.Sleep((bufferSize + 3) * BlockingTimeSec * 1000); // wait for all the events are processed
-            Assert.True(bufferSize + 2 == _countingAppender.Counter, $"Final count of loggingEvents processed: {_countingAppender.Counter}");
+            Assert.True(bufferSize + poolSize + 1 == _countingAppender.Counter, $"Final count of loggingEvents processed: {_countingAppender.Counter}");
         }
 
-        [Fact]
-        public void Append_BufferOverflowRejectNew_Lost()
+        private void OnBufferOverflowEvent(object sender, EventArgs e)
         {
-            SetupRepository(BufferSize);
+            cancellationTokenSource.Cancel();
+        }
+
+        [Theory]
+        [InlineData(3, 10)]
+        [InlineData(3, 1)]
+        public void Append_BufferOverflowRejectNew_Lost(int bufferSize, byte poolSize)
+        {
+            SetupRepository(bufferSize, poolSize);
             var blockingAppender = new BlockingAppender(BlockingTimeSec);
             _forwardingAppender.AddAppender(blockingAppender);
             _forwardingAppender.BufferOverflowBehaviour = BufferOverflowBehaviour.RejectNew;
 
             Assert.Equal(0, _countingAppender.Counter);
             var lastLogElapsedSec = OverflowBuffer();
-            Assert.True(1 == _countingAppender.Counter, $"Count of loggingEvents processed: {_countingAppender.Counter}");
+            Assert.True(poolSize == _countingAppender.Counter, $"Count of loggingEvents processed: {_countingAppender.Counter}");
             Assert.True(0 == lastLogElapsedSec, $"Duration in seconds when client was blocked: {lastLogElapsedSec}");
 
             Thread.Sleep((BufferSize + 3) * BlockingTimeSec * 1000); // wait for all the events are processed
-            Assert.True(BufferSize + 1 == _countingAppender.Counter, $"Final count of loggingEvents processed: {_countingAppender.Counter}");
+            Assert.True(bufferSize + poolSize == _countingAppender.Counter, $"Final count of loggingEvents processed: {_countingAppender.Counter}");
         }
 
-        [Fact]
-        public void Append_BufferOverflowDirectForwarding_BlockedInParallel()
+        [Theory]
+        [InlineData(3, 10, 14)]
+        [InlineData(3, 1, 3)]
+        public void Append_BufferOverflowDirectForwarding_BlockedInParallel(int bufferSize, byte poolSize, byte expectedProcessed)
         {
-            SetupRepository(BufferSize);
+            SetupRepository(bufferSize, poolSize);
             var blockingAppender = new BlockingAppender(BlockingTimeSec);
             _forwardingAppender.AddAppender(blockingAppender);
             _forwardingAppender.BufferOverflowBehaviour = BufferOverflowBehaviour.DirectForwarding;
 
             Assert.Equal(0, _countingAppender.Counter);
             var lastLogElapsedSec = OverflowBuffer();
-            Assert.True(3 == _countingAppender.Counter, $"Count of loggingEvents processed: {_countingAppender.Counter}");
-            Assert.True(2 * BlockingTimeSec == lastLogElapsedSec, $"Duration in seconds when client was blocked: {lastLogElapsedSec}");
 
-            Thread.Sleep((BufferSize + 3) * BlockingTimeSec * 1000); // wait for all the events are processed
-            Assert.True(BufferSize + 2 == _countingAppender.Counter, $"Final count of loggingEvents processed: {_countingAppender.Counter}");
+            Assert.True(expectedProcessed == _countingAppender.Counter, 
+                $"Count of loggingEvents processed: {_countingAppender.Counter}. Expected: {expectedProcessed}");
+
+            Assert.True(BlockingTimeSec == lastLogElapsedSec, $"Duration in seconds when client was blocked: {lastLogElapsedSec}" +
+                                                                  $". Expected: {BlockingTimeSec}");
+
+            Thread.Sleep((bufferSize + 3) * BlockingTimeSec * 1000); // wait for all the events are processed
+            Assert.True(bufferSize + poolSize + 1 == _countingAppender.Counter, $"Final count of loggingEvents processed: {_countingAppender.Counter}");
         }
 
-        [Fact]
-        public void Append_Close_ImmediateClose()
+        [Theory]
+        [InlineData(3, 10, 14)]
+        [InlineData(3, 1, 3)]
+        public void Append_Close_ImmediateClose(int bufferSize, byte poolSize, byte expectedProcessed)
         {
-            SetupRepository(BufferSize);
+            SetupRepository(bufferSize, poolSize);
             byte blockingTimeSec = 1;
             var blockingAppender = new BlockingAppender(blockingTimeSec);
             _forwardingAppender.AddAppender(blockingAppender);
@@ -126,17 +147,19 @@ namespace log4net.tools.Tests
             Assert.Equal(0, _countingAppender.Counter);
 
             var closingElapsedSec = CloseAppenderWithFilledBuffer();
-            Assert.True(1 == _countingAppender.Counter, $"Count of loggingEvents processed: {_countingAppender.Counter}");
+            Assert.True(expectedProcessed == _countingAppender.Counter, $"Count of loggingEvents processed: {_countingAppender.Counter}. Expected: {expectedProcessed}");
             Assert.True(closingElapsedSec <= blockingTimeSec, $"Duration in seconds when client was blocked: {closingElapsedSec}");
 
-            Thread.Sleep((BufferSize + 3) * blockingTimeSec * 1000); // wait for all the events are processed
-            Assert.True(1 == _countingAppender.Counter, $"Final count of loggingEvents processed: {_countingAppender.Counter}");
+            Thread.Sleep((bufferSize + 3) * blockingTimeSec * 1000); // wait for all the events are processed
+            Assert.True(expectedProcessed == _countingAppender.Counter, $"Final count of loggingEvents processed: {_countingAppender.Counter}");
         }
 
-        [Fact]
-        public void Append_Close_DumpToErrorHandler()
+        [Theory]
+        [InlineData(3, 10, 14)]
+        [InlineData(3, 1, 3)]
+        public void Append_Close_DumpToErrorHandler(int bufferSize, byte poolSize, byte expectedProcessed)
         {
-            SetupRepository(BufferSize);
+            SetupRepository(bufferSize, poolSize);
             byte blockingTimeSec = 1;
             var blockingAppender = new BlockingAppender(blockingTimeSec);
             _forwardingAppender.AddAppender(blockingAppender);
@@ -145,18 +168,20 @@ namespace log4net.tools.Tests
             Assert.Equal(0, _countingAppender.Counter);
 
             var closingElapsedSec = CloseAppenderWithFilledBuffer();
-            Assert.True(1 == _countingAppender.Counter, $"Count of loggingEvents processed: {_countingAppender.Counter}");
+            Assert.True(expectedProcessed == _countingAppender.Counter, $"Count of loggingEvents processed: {_countingAppender.Counter}");
             Assert.True(closingElapsedSec <= blockingTimeSec, $"Duration in seconds when client was blocked: {closingElapsedSec}");
 
             // todo: check ErrorLogger output
             Thread.Sleep((BufferSize + 3) * blockingTimeSec * 1000); // wait for all the events are processed
-            Assert.True(1 == _countingAppender.Counter, $"Final count of loggingEvents processed: {_countingAppender.Counter}");
+            Assert.True(expectedProcessed == _countingAppender.Counter, $"Final count of loggingEvents processed: {_countingAppender.Counter}");
         }
 
-        [Fact]
-        public void Append_Close_DumpToLog()
+        [Theory]
+        [InlineData(3, 10, 14, 0)]
+        [InlineData(3, 1, 5, 2)]
+        public void Append_Close_DumpToLog(int bufferSize, byte poolSize, byte expectedProcessed, byte expectedBlockDurationSec)
         {
-            SetupRepository(BufferSize);
+            SetupRepository(bufferSize, poolSize);
             byte blockingTimeSec = 1;
             var blockingAppender = new BlockingAppender(blockingTimeSec);
             _forwardingAppender.AddAppender(blockingAppender);
@@ -165,22 +190,29 @@ namespace log4net.tools.Tests
             Assert.Equal(0, _countingAppender.Counter);
 
             var closingElapsedSec = CloseAppenderWithFilledBuffer();
-            Assert.True(4 == _countingAppender.Counter, $"Count of loggingEvents processed: {_countingAppender.Counter}");
-            Assert.True(4 == closingElapsedSec, $"Duration in seconds when client was blocked: {closingElapsedSec}");
+            Assert.True(expectedProcessed == _countingAppender.Counter, $"Count of loggingEvents processed: {_countingAppender.Counter}. Expected: {expectedProcessed}");
+            Assert.True(expectedBlockDurationSec == closingElapsedSec, $"Duration in seconds when client was blocked: {closingElapsedSec}. Expected: {4}");
         }
 
         private int CloseAppenderWithFilledBuffer()
         {
             Stopwatch stopWatch = new Stopwatch();
 
-            Log(); // 0. It's dequeued immediately
-            Log(); // 1
-            Log(); // 2
-            Log(); // 3
+            for (int i = 0; i < MaxLogToOwerflowBuffer; i++)
+            {
+                Log();
+
+                Thread.Sleep(10);
+                if (_cancelationToken.IsCancellationRequested)
+                {
+                    break;
+                }
+            }
+
             stopWatch.Start();
             _forwardingAppender.Close();
             stopWatch.Stop();
-            
+
             return (int)stopWatch.Elapsed.TotalSeconds;
         }
 
@@ -188,15 +220,19 @@ namespace log4net.tools.Tests
         {
             Stopwatch stopWatch = new Stopwatch();
 
-            Log(); // 0. It's dequeued immediately
-            Log(); // 1
-            Log(); // 2
-            Log(); // 3
-            stopWatch.Start();
-            Log(); // 4 => BufferOverflow state. If Appender.BufferOverflowBehaviour ==
-                   //     BufferOverflowBehaviour.Wait, it's blocked while #0 is in processing
-                   //     BufferOverflowBehaviour.RejectNew, it's lost, no any blocking
-            stopWatch.Stop();
+            for (int i = 0; i < MaxLogToOwerflowBuffer; i++)
+            {
+                stopWatch.Reset();
+                stopWatch.Start();
+                Log();
+                stopWatch.Stop();
+
+                Thread.Sleep(10);
+                if (_cancelationToken.IsCancellationRequested)
+                {
+                    break;
+                }
+            }
 
             return (int)stopWatch.Elapsed.TotalSeconds;
         }
