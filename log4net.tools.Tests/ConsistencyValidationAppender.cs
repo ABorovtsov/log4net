@@ -22,8 +22,8 @@ namespace log4net.tools.Tests
 
             if (loggingEvent.Properties.GetKeys().Contains(key) 
                 && key == loggingEvent.LookupProperty(key).ToString() 
-                && key == loggingEvent.ExceptionObject.Message)
-                //&& loggingEvent.Properties.Count == 1)
+                && key == loggingEvent.ExceptionObject.Message
+                && loggingEvent.Properties.Count == 4) // the additional properties are: "log4net:HostName", "log4net:Identity", "log4net:UserName"
             {
                 Interlocked.Increment(ref _consistencyCounter);
                 return;
