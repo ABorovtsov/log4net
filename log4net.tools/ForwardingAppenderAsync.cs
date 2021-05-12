@@ -27,6 +27,7 @@ namespace log4net.tools
         private static readonly IErrorLogger ErrorLogger = new ErrorTracer();
 
         private readonly CancellationTokenSource _cancellation = new CancellationTokenSource();
+        private int _bufferSizeThreshold;
         private List<Task> _workerPool = new List<Task>();
 
         public ForwardingAppenderAsync() : base(ErrorLogger)
@@ -130,6 +131,8 @@ namespace log4net.tools
                         TaskCreationOptions.LongRunning,
                         TaskScheduler.Current));
             }
+
+            _bufferSizeThreshold = BufferSize - BufferSize / 3;
         }
 
         private void CloseBuffer()
@@ -173,8 +176,9 @@ namespace log4net.tools
 
             ErrorLogger.Error("Cannot add the loggingEvent in to the buffer");
 
-            if (bufferLength < BufferSize)
+            if (bufferLength < _bufferSizeThreshold) // The delta is used to compensate a possible race condition
             {
+                AppendLoopOnAppenders(loggingEvent); // Write log synchronously
                 return;
             }
 

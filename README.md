@@ -7,7 +7,7 @@ The project was designed to supplement the log4net base functionality with often
 
 - log4net.tools <a href="https://www.nuget.org/packages/log4net.tools"><img src="https://img.shields.io/nuget/v/log4net.tools.svg?style=flat&logo=nuget"></a> 
 - log4net.tools.integration <a href="https://www.nuget.org/packages/log4net.tools.integration"><img src="https://img.shields.io/nuget/v/log4net.tools.integration.svg?style=flat&logo=nuget"></a> 
-<br/>
+
 
 ## [ForwardingAppenderAsync](https://github.com/ABorovtsov/log4net/blob/main/log4net.tools/ForwardingAppenderAsync.cs)
 
@@ -20,19 +20,19 @@ Thus waiting needing before for example to write a log in a database is delegate
 ![latency](https://raw.githubusercontent.com/ABorovtsov/log4net/main/img/metrics/enqueue_dequeue.png)
 
 The 'Dequeue' graph reflects the latency in microseconds of the RollingFileAppender (taken just as example) which works under the hood as the attached synchronous appender. A consumer is blocked only during the 'Enqueue' microseconds.
-<br/>
+
 
 The approach allows:
 - to get the minimal blocking of the client app;
 - to turn any 'old' synchronous appender into the 'async' version easily without additional coding or recompile;
 - to eliminate concurrent waits on the [internal lock section](https://git-wip-us.apache.org/repos/asf?p=logging-log4net.git;a=blob;f=src/log4net/Appender/AppenderSkeleton.cs;h=44b68c7555944ddcc2e862901ce8513ce0bff10f;hb=refs/heads/master#l297) as the background worker is singlethreaded if no pooling is used;
 - to build aggregations over the buffer. For example, to drop log duplicates or generate stats on the fly.
-<br/>
+
 
 Configurable logic:
 - [handling the buffer overflow situation](https://github.com/ABorovtsov/log4net/blob/main/log4net.tools/BufferOverflowBehaviour.cs)
 - [closing behavior](https://github.com/ABorovtsov/log4net/blob/main/log4net.tools/BufferClosingType.cs)
-<br/>
+
 
 ### XML Configuration
 The example of the minimal configuration:
