@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace log4net.tools
+﻿namespace log4net.tools
 {
     internal static class SwallowHelper
     {

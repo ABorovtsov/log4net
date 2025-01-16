@@ -1,34 +1,17 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netstandard2.0</TargetFramework>
-    <Authors>Alexander Borovtsov</Authors>
-    <Copyright>Alexander Borovtsov</Copyright>
-    <RepositoryUrl>https://github.com/ABorovtsov/log4net</RepositoryUrl>
-    <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
-    <PackageTags>log4net async appender forwarder</PackageTags>
-    <PackageProjectUrl>https://github.com/ABorovtsov/log4net</PackageProjectUrl>
-    <PackageLicenseExpression>MIT</PackageLicenseExpression>
-    <Description>log4net async appenders: 
+	  <RootNamespace>log4net.tools</RootNamespace>
+	  <AssemblyName>log4net.tools</AssemblyName>
+	  <Description>log4net async appenders: 
 - ForwardingAppenderAsync which forwards LoggingEvents to a list of attached appenders asynchronously;
 - ForwardingAppenderAsyncWithMetrics do the same as ForwardingAppenderAsync but with metrics.</Description>
-    <RepositoryType>git</RepositoryType>
-    <Version>1.4.1</Version>
-    <AssemblyVersion>1.4.1.0</AssemblyVersion>
     <PackageIcon>icon.png</PackageIcon>
-    <FileVersion>1.4.1.0</FileVersion>
-    <PackageReleaseNotes>-  fix the buffer overflow handling</PackageReleaseNotes>
+    <PackageReleaseNotes>- migration to .net 8</PackageReleaseNotes>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="log4net" Version="2.0.12" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <None Include="..\img\icon.png">
-      <Pack>True</Pack>
-      <PackagePath></PackagePath>
-    </None>
+    <PackageReference Include="log4net" />
   </ItemGroup>
 
 </Project>

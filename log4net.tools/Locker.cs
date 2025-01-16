@@ -1,7 +1,4 @@
-﻿using System;
-using System.Threading;
-
-namespace log4net.tools
+﻿namespace log4net.tools
 {
     public readonly struct Locker: IDisposable
     {

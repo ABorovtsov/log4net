@@ -1,37 +1,20 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netstandard2.0</TargetFramework>
-    <Authors>Alexander Borovtsov</Authors>
-    <Copyright>Alexander Borovtsov</Copyright>
-    <RepositoryUrl>https://github.com/ABorovtsov/log4net</RepositoryUrl>
-    <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
-    <PackageTags>log4net integration csv</PackageTags>
-    <PackageProjectUrl>https://github.com/ABorovtsov/log4net</PackageProjectUrl>
-    <PackageLicenseExpression>MIT</PackageLicenseExpression>
-    <Description>Tools for log4net:
+	  <RootNamespace>log4net.tools.integration</RootNamespace>
+	  <AssemblyName>log4net.tools.integration</AssemblyName>
+	  <Description>Tools for log4net:
 - MetricsCsvWriter writes logging metrics in a csv file.</Description>
-    <RepositoryType>git</RepositoryType>
-    <Version>1.0.1</Version>
-    <AssemblyVersion>1.0.1.0</AssemblyVersion>
-    <FileVersion>1.0.1.0</FileVersion>
-    <PackageReleaseNotes>- limit output csv length</PackageReleaseNotes>
+    <PackageReleaseNotes>- migration to .net 8</PackageReleaseNotes>
     <PackageIcon>icon.png</PackageIcon>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="CsvHelper" Version="27.0.2" />
+    <PackageReference Include="CsvHelper" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\log4net.tools\log4net.tools.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <None Include="..\img\icon.png">
-      <Pack>True</Pack>
-      <PackagePath></PackagePath>
-    </None>
   </ItemGroup>
 
 </Project>

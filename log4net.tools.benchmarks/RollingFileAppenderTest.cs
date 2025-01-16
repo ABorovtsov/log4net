@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Threading.Tasks;
-using BenchmarkDotNet.Attributes;
+﻿using BenchmarkDotNet.Attributes;
 
 namespace log4net.tools.benchmarks
 {
@@ -13,7 +11,7 @@ namespace log4net.tools.benchmarks
 
         public RollingFileAppenderTest()
         {
-            Config.XmlConfigurator.Configure();
+            Config.XmlConfigurator.Configure(new FileInfo("App.config"));
             _bufferingLogger = LogManager.GetLogger("BufferingForwardingLogger");
             _forwardingLogger = LogManager.GetLogger("Forwarding2RollingFileLogger");
             _forwardingWithMetricsLogger = LogManager.GetLogger("ForwardingWithMetrics2RollingFileLogger");

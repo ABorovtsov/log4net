@@ -1,6 +1,4 @@
-﻿using System;
-using System.Threading;
-using log4net.Config;
+﻿using log4net.Config;
 using log4net.Core;
 
 
