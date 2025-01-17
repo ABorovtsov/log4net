@@ -27,7 +27,7 @@
   </ItemGroup>
 
   <Target Name="PreBuild" BeforeTargets="PreBuildEvent">
-    <!--<Exec Command="cd $(ProjectDir)logs\&#xD;&#xA;del *.* /q" />-->
+    <Exec Command="cd $(ProjectDir)logs\&#xD;&#xA;del *.* /q" />
   </Target>
 
 </Project>

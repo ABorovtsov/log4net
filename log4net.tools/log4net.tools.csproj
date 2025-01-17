@@ -8,6 +8,7 @@
 - ForwardingAppenderAsyncWithMetrics do the same as ForwardingAppenderAsync but with metrics.</Description>
     <PackageIcon>icon.png</PackageIcon>
     <PackageReleaseNotes>- migration to .net 8</PackageReleaseNotes>
+    <TargetFramework>netstandard2.0</TargetFramework>
   </PropertyGroup>
 
   <ItemGroup>
