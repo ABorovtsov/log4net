@@ -13,7 +13,15 @@
 	  <TargetFramework>netstandard2.0</TargetFramework>
 	  <Nullable>disable</Nullable>
 	  <IsPackable>true</IsPackable>
+	  <PackageReadmeFile>README.md</PackageReadmeFile>
   </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="..\README.md">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
+  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="log4net" />
