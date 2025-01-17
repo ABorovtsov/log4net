@@ -3,6 +3,7 @@
   <PropertyGroup>
 	<RootNamespace>log4net.tools.Tests</RootNamespace>
 	<AssemblyName>log4net.tools.Tests</AssemblyName>
+	  <OutputType>Library</OutputType>
   </PropertyGroup>
 
   <ItemGroup>

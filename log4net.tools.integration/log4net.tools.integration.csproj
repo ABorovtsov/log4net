@@ -3,10 +3,12 @@
   <PropertyGroup>
 	  <RootNamespace>log4net.tools.integration</RootNamespace>
 	  <AssemblyName>log4net.tools.integration</AssemblyName>
+	  <OutputType>Library</OutputType>
 	  <Description>Tools for log4net:
 - MetricsCsvWriter writes logging metrics in a csv file.</Description>
     <PackageReleaseNotes>- migration to .net 8</PackageReleaseNotes>
     <PackageIcon>icon.png</PackageIcon>
+	<IsPackable>true</IsPackable>
   </PropertyGroup>
 
   <ItemGroup>

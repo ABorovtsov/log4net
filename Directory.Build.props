@@ -29,7 +29,7 @@
     <IsPackable>false</IsPackable>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <IncludeSymbols>true</IncludeSymbols>
-    <PackageOutputPath>$(SolutionDir)Packages</PackageOutputPath>
+    <PackageOutputPath>$(SolutionDir)packages</PackageOutputPath>
   </PropertyGroup>
   <ItemGroup>
     <None Include="..\img\icon.png">

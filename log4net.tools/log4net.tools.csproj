@@ -3,12 +3,16 @@
   <PropertyGroup>
 	  <RootNamespace>log4net.tools</RootNamespace>
 	  <AssemblyName>log4net.tools</AssemblyName>
+	  <OutputType>Library</OutputType>
 	  <Description>log4net async appenders: 
 - ForwardingAppenderAsync which forwards LoggingEvents to a list of attached appenders asynchronously;
 - ForwardingAppenderAsyncWithMetrics do the same as ForwardingAppenderAsync but with metrics.</Description>
-    <PackageIcon>icon.png</PackageIcon>
-    <PackageReleaseNotes>- migration to .net 8</PackageReleaseNotes>
-    <TargetFramework>netstandard2.0</TargetFramework>
+	  <PackageId>log4net.tools</PackageId>
+	  <PackageIcon>icon.png</PackageIcon>
+	  <PackageReleaseNotes>- upgrading dependencies</PackageReleaseNotes>
+	  <TargetFramework>netstandard2.0</TargetFramework>
+	  <Nullable>disable</Nullable>
+	  <IsPackable>true</IsPackable>
   </PropertyGroup>
 
   <ItemGroup>
